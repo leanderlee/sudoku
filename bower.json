@@ -1,0 +1,21 @@
+{
+  "name": "sudoku",
+  "version": "0.0.0",
+  "homepage": "https://github.com/leanderlee/sudoku",
+  "authors": [
+    "Leander (Laptop) <me@leander.ca>"
+  ],
+  "description": "This is a simple sudoku solver made for the uber interview",
+  "main": "index.html",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.1"
+  }
+}
