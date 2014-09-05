@@ -14,6 +14,21 @@ Firstly, I am really enjoying working on this project. I appreciate having the
 time to make something awesome from the beginning to the end, and show it to
 like-minded people that care in the same way.
 
+This project was primarily sparked by the good guys at Uber that wanted to see
+the way I code, and structure my projects. Hopefully, this is up to standard!
+
+#### Using this solver
+So, this tool I made is entirely web based. You will need Node.JS 0.8+, Grunt
+and ideally a browser or phone to view the app.
+
+You can run it simply by cloning this repo, and running the following commands.
+
+```
+   npm install
+   grunt
+```
+
+
 ======
 
 ### Technology Choices
