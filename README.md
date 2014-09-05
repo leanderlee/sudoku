@@ -39,8 +39,9 @@ I decided it would be best to have an object, `Puzzle`, that is controlled by
 a `Solver` entity that manipulates the puzzle until it is in a solved state.
 
 I chose this approach compared to other approach because it separates the
-nitty-gritty rules about Sudoku into the `Puzzle` class, and the `Solver` just
-focuses on what to do when we are stuck (backtracking; see next section).
+data access into the `Puzzle` object, and the nitty-gritty rules about Sudoku
+into the `Solver` class. This means that if we wanted, we could plug in an
+open source solver that has already been performance tested.
 
 The good thing with this design is that we can always expand `Puzzle` to be
 more useful by adding [more techniques](http://www.su-doku.net/tech.php).
