@@ -28,6 +28,10 @@ You can run it simply by cloning this repo, and running the following commands.
    grunt
 ```
 
+You can also run the QUnit tests with
+```
+   grunt test
+```
 
 ======
 
@@ -43,9 +47,10 @@ Most of these technologies were chosen because I knew them well, and also becaus
 they are quite mainstream. They are well supported and have been relatively well
 battle-tested for production environments.
  
-
 ### Compatibility
 Chrome, Firefox, IE, Opera, iOS, Android
+
+======
 
 ### Technical Design
 
