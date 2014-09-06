@@ -63,15 +63,26 @@ data access into the `Puzzle` object, and the nitty-gritty rules about Sudoku
 into the `Solver` class. This means that if we wanted, we could plug in an
 open source solver that has already been performance tested.
 
-The good thing with this design is that we can always expand `Puzzle` to be
-more useful by adding [more techniques](http://www.su-doku.net/tech.php).
-
 ##### Solver Algorithm
-Once the puzzle can no longer be solved "obviously", i.e. a guess needs to be
-made, we need to keep track of the guesses we have made, and backtrack when
-we have decided that it is no longer feasible. Luckily, this is easy to do
-since the `Puzzle` class already handles checking if the solution is feasible
-or not.
+The solver currently employs a backtracking approach. Simple approach to this
+in psuedo code is something like:
+```
+solve (puzzle) -> puzzle {
+   while reducible
+     make a guess
+     reduce again
+     if inconsistent, try another guess.
+     if solved, return
+   end
+   return false (it is irreducible)
+}
+```
+This is based off a reduce function, which can significantly speed up the
+algorithm by implementing [more techniques](http://www.su-doku.net/tech.php).
+
+Currently our reduce algorithm cancels out candidates, as well as checks for
+really obvious candidates (naked singles). There is another way to do this 
+algorithm, where you fill in the candidates as you go.
 
 ##### Maker/Puzzle Relationship
 Instead of defining puzzles from the instantiation, I decided it would
@@ -99,6 +110,6 @@ I think this might be possible using a priority heap and keeping track of how ca
 decisions will affect other candidates (maybe with a ref count or point system.)
 
 ##### N > 3
-Sudoku of 16x16, 25x25, and more! That would be awesome.
+Sudoku of 16x16, 25x25, and more! That would be awesome. Technically, it's already implemented!
 
 
