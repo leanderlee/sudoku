@@ -97,10 +97,28 @@ I decided to use a UI class to control the state of the DOM elements.
 ##### Adding more techniques
 As we have aluded to from above, we can make significant performance improvements
 by simply implementing more techniques that allow the puzzles to go further
-before resolving to a "stuck" state that requires `Solver` intervention.
+before resolving to a "stuck" state that requires guessing.
 
-The ability to recognize Swordfish, X-Wing and X-Y Wing as well as the reduce 
-possibilities from looking at multiple relationships between unrelated candidates 
+One limitation is noted by [this skipped test](https://github.com/leanderlee/sudoku/blob/bd166dc5a584fbefecfbcde364001a3f97294ce4/tests/solver.html#L350), where this type of deduction is missing:
+
+```
+ [1,0,0, 0,0,0, 0,0,0]
+ [0,0,0, 0,0,0, 0,0,0]
+ [0,0,0, 0,1,0, 0,0,0]
+
+ [0,0,0, 0,0,0, 2,0,0]
+ [0,0,0, 0,0,0, 3,0,0]
+ [0,0,0, 0,0,0, 4,0,0]
+
+ [0,0,0, 0,0,0, 0,1,0]
+ [0,0,0, 0,0,0, 0,0,0]
+ [0,0,0, 0,0,0, 0,0,0]
+```
+
+Where we see the candidate at (6,1) should be 1, because 1 cannot exist in the box below it.
+
+In addition, add the ability to recognize more complex techniques, as described in the site,
+such as Swordfish, X-Wing and X-Y Wing, and looking at the relationships between linked candidates
 (the principle behind colouring technique.)
 
 ##### Keeping track of critical decisions
