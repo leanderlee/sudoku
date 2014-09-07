@@ -347,7 +347,7 @@
       ]);
       solver.markAll(puzzle);
       ok(solver.deduce(puzzle), "Puzzle should be deducible");
-      deepEqual(puzzle.candidates(8,4), [1], "(8,4) can only have one possible value");
+      deepEqual(puzzle.candidates(6,1), [1], "(6,1) can only have one possible value");
     });
 
     module("solutions")
