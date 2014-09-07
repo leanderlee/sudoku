@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>QUnit - Solver Class</title>
+  <link rel="stylesheet" href="//code.jquery.com/qunit/qunit-1.15.0.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+
+  <script src="libs/qunit.js"></script>
+  <script src="../js/solver.js"></script>
+  <script src="../js/puzzle.js"></script>
+
+  <script>
+    var compare = function (a, b) {
+      for (var i = 0; i < 9; i++) {
+        for (var j = 0; j < 9; j++) {
+          equal(a.get(i,j), b.get(i,j), "Ensure values match at [" + i + "," + j + "]");
+          deepEqual(a.candidates(i,j), b.candidates(i,j), "Ensure candidates match at [" + i + "," + j + "]");
+        }
+      }
+    };
+
+    test("solver row fetching", function () {
+      var puzzle = new Sudoku.Puzzle([
+        [1,2,3, 4,5,6, 7,8,9],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [2,3,4, 5,6,7, 8,9,1],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0]
+      ]);
+      var solver = new Sudoku.Solver();
+      deepEqual(solver.getRow(0, puzzle), [1,2,3,4,5,6,7,8,9], "Grabbed first row of puzzle")
+      deepEqual(solver.getRow(3, puzzle), [2,3,4,5,6,7,8,9,1], "Grabbed fourth row of puzzle")
+    });
+    test("solver col fetching", function () {
+      var puzzle = new Sudoku.Puzzle([
+        [1,0,0, 2,0,0, 0,0,0],
+        [2,0,0, 3,0,0, 0,0,0],
+        [3,0,0, 4,0,0, 0,0,0],
+
+        [4,0,0, 5,0,0, 0,0,0],
+        [5,0,0, 6,0,0, 0,0,0],
+        [6,0,0, 7,0,0, 0,0,0],
+
+        [7,0,0, 8,0,0, 0,0,0],
+        [8,0,0, 9,0,0, 0,0,0],
+        [9,0,0, 1,0,0, 0,0,0]
+      ]);
+      var solver = new Sudoku.Solver();
+      deepEqual(solver.getCol(0, puzzle), [1,2,3,4,5,6,7,8,9], "Grabbed first col of puzzle")
+      deepEqual(solver.getCol(3, puzzle), [2,3,4,5,6,7,8,9,1], "Grabbed fourth col of puzzle")
+    });
+    test("solver box fetching", function () {
+      var puzzle = new Sudoku.Puzzle([
+        [1,2,3, 0,0,0, 0,0,0],
+        [4,5,6, 0,0,0, 0,0,0],
+        [7,8,9, 0,0,0, 0,0,0],
+
+        [0,0,0, 2,3,4, 0,0,0],
+        [0,0,0, 5,6,7, 0,0,0],
+        [0,0,0, 8,9,1, 0,0,0],
+
+        [0,0,0, 3,4,5, 0,0,0],
+        [0,0,0, 6,7,8, 0,0,0],
+        [0,0,0, 9,1,2, 0,0,0]
+      ]);
+      var solver = new Sudoku.Solver();
+      deepEqual(solver.getBox(0, 0, puzzle), [1,2,3,4,5,6,7,8,9], "Grabbed box (0,0) of puzzle")
+      deepEqual(solver.getBox(1, 1, puzzle), [2,3,4,5,6,7,8,9,1], "Grabbed box (1,1) of puzzle")
+      deepEqual(solver.getBox(1, 2, puzzle), [3,4,5,6,7,8,9,1,2], "Grabbed box (1,2) of puzzle")
+    });
+    test("solver boxnum", function () {
+      var solver = new Sudoku.Solver();
+      equal(solver.getBoxNum(0,0,3), 0);
+      equal(solver.getBoxNum(1,0,3), 1);
+      equal(solver.getBoxNum(2,0,3), 2);
+      equal(solver.getBoxNum(0,1,3), 3);
+      equal(solver.getBoxNum(1,1,3), 4);
+      equal(solver.getBoxNum(2,1,3), 5);
+      equal(solver.getBoxNum(0,2,3), 6);
+      equal(solver.getBoxNum(1,2,3), 7);
+      equal(solver.getBoxNum(2,2,3), 8);
+      equal(solver.getBoxNum(3,3,3), 0);
+      equal(solver.getBoxNum(4,3,3), 1);
+      equal(solver.getBoxNum(5,3,3), 2);
+      equal(solver.getBoxNum(3,4,3), 3);
+      equal(solver.getBoxNum(4,4,3), 4);
+      equal(solver.getBoxNum(5,4,3), 5);
+      equal(solver.getBoxNum(3,5,3), 6);
+      equal(solver.getBoxNum(4,5,3), 7);
+      equal(solver.getBoxNum(5,5,3), 8);
+    })
+    test("solver mark all", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [1,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0]
+      ]);
+      ok(puzzle.isCandidate(1,0,1), "Originally, 1 is a candidate of (1,0).")
+      ok(puzzle.isCandidate(0,1,1), "Originally, 1 is a candidate of (0,1).")
+      ok(puzzle.isCandidate(1,1,1), "Originally, 1 is a candidate of (1,1).")
+      ok(puzzle.isCandidate(3,3,1), "Originally, 1 is a candidate of (3,3).")
+      ok(solver.markAll(puzzle), "Consistent puzzles should return a puzzle.");
+      ok(!puzzle.isCandidate(1,0,1), "After marking, 1 is not a candidate of (1,0).")
+      ok(!puzzle.isCandidate(0,1,1), "After marking, 1 is not a candidate of (0,1).")
+      ok(!puzzle.isCandidate(0,1,1), "After marking, 1 is not a candidate of (1,1).")
+      ok(puzzle.isCandidate(3,3,1), "After marking, 1 is still a candidate of (3,3).")
+      puzzle.set(1,1,1);
+      ok(!solver.markAll(puzzle), "Inconsistent puzzles should fail.");
+      var p1 = puzzle.clone();
+      solver.markAll(p1);
+      compare(p1, puzzle);
+    });
+    test("solver set", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [1,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0]
+      ]);
+      solver.markAll(puzzle);
+      var p1 = puzzle.clone();
+      ok(puzzle.isCandidate(1,0,2), "Originally, 2 is a candidate of (1,0) in puzzle.")
+      ok(puzzle.isCandidate(0,1,2), "Originally, 2 is a candidate of (0,1) in puzzle.")
+      ok(p1.isCandidate(1,0,2), "Originally, 2 is a candidate of (1,0) in p1.")
+      ok(p1.isCandidate(0,1,2), "Originally, 2 is a candidate of (0,1) in p1.")
+      solver.set(1,1,2,puzzle);
+      p1.set(1,1,2);
+      solver.markAll(p1);
+      ok(!puzzle.isCandidate(1,0,2), "After set, 2 is no longer a candidate of (1,0) in puzzle.")
+      ok(!puzzle.isCandidate(0,1,2), "After set, 2 is no longer a candidate of (0,1) in puzzle.")
+      ok(!p1.isCandidate(1,0,2), "After mark all, 2 is no longer a candidate of (1,0) in p1.")
+      ok(!p1.isCandidate(0,1,2), "After mark all, 2 is no longer a candidate of (0,1) in p1.")
+    });
+    test("basic solution", function () {
+      var puzzle = new Sudoku.Puzzle([
+        [1,0,0, 0,0,0, 0,0,2],
+        [0,9,0, 4,0,0, 0,5,0],
+        [0,0,6, 0,0,0, 7,0,0],
+
+        [0,5,0, 9,0,3, 0,0,0],
+        [0,0,0, 0,7,0, 0,0,0],
+        [0,0,0, 8,5,0, 0,4,0],
+
+        [7,0,0, 0,0,0, 6,0,0],
+        [0,3,0, 0,0,9, 0,8,0],
+        [0,0,2, 0,0,0, 0,0,1]
+      ]);
+      var solution = new Sudoku.Puzzle([
+        [1,7,4, 3,8,5, 9,6,2],
+        [2,9,3, 4,6,7, 1,5,8],
+        [5,8,6, 1,9,2, 7,3,4],
+
+        [4,5,1, 9,2,3, 8,7,6],
+        [9,2,8, 6,7,4, 3,1,5],
+        [3,6,7, 8,5,1, 2,4,9],
+
+        [7,1,9, 5,4,8, 6,2,3],
+        [6,3,5, 2,1,9, 4,8,7],
+        [8,4,2, 7,3,6, 5,9,1],
+      ]);
+      var solver = new Sudoku.Solver();
+      var result = solver.solve(puzzle);
+      ok(result, "Has a result");
+      //compare(result, solution);
+    });
+  </script>
+</body>
+</html>

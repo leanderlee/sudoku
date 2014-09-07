@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>QUnit - Puzzle Class</title>
+  <link rel="stylesheet" href="//code.jquery.com/qunit/qunit-1.15.0.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+
+  <script src="libs/qunit.js"></script>
+  <script src="../js/puzzle.js"></script>
+
+  <script>
+    test("basic board interface", function () {
+
+      var puzzle = new Sudoku.Puzzle();
+
+      equal(puzzle.get(0, 1), 0, "Expect blank puzzle to be initialized with 0s");
+      puzzle.set(0, 1, 1);
+      equal(puzzle.get(0, 1), 1, "Expect puzzle setting to work");
+
+    });
+
+    test("marking interface", function () {
+
+      var puzzle = new Sudoku.Puzzle();
+
+      puzzle.markNo(0, 1, 2);
+      deepEqual(puzzle.candidates(0, 1), [1,3,4,5,6,7,8,9], "Expect everything except 2");
+
+      puzzle.markPossible(0, 1, 2);
+      deepEqual(puzzle.candidates(0, 1), [1,3,4,5,6,7,8,9,2], "Expect 2 to be added back in");
+
+      puzzle.markOneOf(0, 1, [2,3]);
+      deepEqual(puzzle.candidates(0, 1), [2,3], "Expect [2,3] if marked as one of those");
+
+    });
+
+    test("cloning", function () {
+
+      // Check the original puzzle
+      var puzzle = new Sudoku.Puzzle();
+      puzzle.markOneOf(0, 1, [2,4]);
+      puzzle.set(0, 1, 4);
+      deepEqual(puzzle.candidates(0, 1), [2,4], "Original puzzle (0,1) has [2,4] as candidates");
+      deepEqual(puzzle.get(0, 1), 4, "Original puzzle (0,1) is 4");
+
+
+      // Perform the clone
+      var result = puzzle.clone();
+
+      deepEqual(result.candidates(0, 1), [2,4], "Cloned puzzle (0,1) has [2,4] as candidates");
+      deepEqual(result.get(0, 1), 4, "Cloned puzzle (0,1) is 4");
+
+
+      // Manipulate the cloned object
+      result.markOneOf(0, 1, [3,5]);
+      result.set(0, 1, 5);
+
+      deepEqual(result.candidates(0, 1), [3,5], "Cloned puzzle (0,1) has [3,5] as candidates after update");
+      deepEqual(result.get(0, 1), 5, "Cloned puzzle (0,1) is 5 after update");
+      deepEqual(puzzle.candidates(0, 1), [2,4], "Original puzzle (0,1) is still [2,4] as candidates");
+      deepEqual(puzzle.get(0, 1), 4, "Original puzzle (0,1) is still 4");
+
+
+      // Manipulate the original object
+      puzzle.markOneOf(0, 1, [4,6]);
+      puzzle.set(0, 1, 6);
+
+      deepEqual(puzzle.candidates(0, 1), [4,6], "Original puzzle (0,1) is now [4,6] as candidates");
+      deepEqual(puzzle.get(0, 1), 6, "Original puzzle (0,1) is now 6");
+      deepEqual(result.candidates(0, 1), [3,5], "Cloned puzzle (0,1) is still [3,5] as candidates");
+      deepEqual(result.get(0, 1), 5, "Cloned puzzle (0,1) is still 5");
+
+    })
+
+  </script>
+</body>
+</html>
