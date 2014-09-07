@@ -5,7 +5,9 @@ Sudoku.Solver = function () {
   var arr_find = function (arr, query) {
     var result = [];
     for (var i = 0; i < arr.length; i++) {
-      if (arr[i] === query) {
+      if (typeof query == "function" && query(arr[i])) {
+        result.push(i);
+      } else if (arr[i] === query) {
         result.push(i);
       }
     }
@@ -38,6 +40,36 @@ Sudoku.Solver = function () {
     var result = [];
     for (var i = 0; i < n*n; i++) {
       result.push(p.get(i%n + (x*n), Math.floor(i/n) + (y*n)));
+    }
+    return result;
+  }
+
+  // Gets the candidates of the column at x
+  self.getCandidatesForCol = function (x,p) {
+    var n = p.n();
+    var result = [];
+    for (var i = 0; i < n*n; i++) {
+      result.push(p.candidates(x,i));
+    }
+    return result;
+  }
+
+  // Gets the candidates of the row at y
+  self.getCandidatesForRow = function (y,p) {
+    var n = p.n();
+    var result = [];
+    for (var i = 0; i < n*n; i++) {
+      result.push(p.candidates(i,y));
+    }
+    return result;
+  }
+
+  // Gets the candidates of the n by n box at x,y
+  self.getCandidatesForBox = function (x,y,p) {
+    var n = p.n();
+    var result = [];
+    for (var i = 0; i < n*n; i++) {
+      result.push(p.candidates(i%n + (x*n), Math.floor(i/n) + (y*n)));
     }
     return result;
   }
@@ -119,7 +151,7 @@ Sudoku.Solver = function () {
           var xy = inBox[0];
           for (var k = 0; k < n*n; k++) {
             if (k != xy) {
-              p.markNo((n*(j%n)) + k%n, (n*Math.floor(j/n)) + Math.floor(k/n), i);
+              p.markNo((n*(j%n)) + (k%n), (n*Math.floor(j/n)) + Math.floor(k/n), i);
             }
           }
         }
@@ -128,21 +160,72 @@ Sudoku.Solver = function () {
     return p;
   }
 
-  // Reduces candidates based on current values.
-  // Returns the puzzle if reduced, false if inconsistent or irreducible.
+  // Takes a marked puzzle and sets new values based on its candidates.
+  // Returns true if reduced, false if inconsistent or irreducible.
   self.reduce = function (p) {
-    // Mark no
-    if (!self.markNo(p)) return false;
+    var n = p.n();
+    var candidates = [];
+    var reducible = false;
+    for (var i = 0; i < n*n; i++) {
+      for (var j = 0; j < n*n; j++) {
+        candidates = p.candidates(i,j);
+        if (candidates.length == 1 && p.get(i,j) == 0) {
+          // Reducible!
+          reducible = true;
+          self.set(i,j,candidates[0],p)
+        }
+      }
+    }
+    if (reducible) {
+      self.deduce(p);
+    }
+    return reducible;
+  }
 
-    // Go through each number and update its candidates
-    // Set all single candidates with values
-
-    return p;
+  // Takes a marked puzzle and rules out numbers based on other candidates.
+  // Returns true if something was deduced, false otherwise.
+  self.deduce = function (p) {
+    var n = p.n();
+    var deduced = false;
+    for (var i = 1; i <= n*n; i++) {
+      for (var j = 0; j < n*n; j++) {
+        var box = self.getCandidatesForBox(j%n, Math.floor(j/n), p);
+        var row = self.getCandidatesForRow(j, p);
+        var col = self.getCandidatesForCol(j, p);
+        var inRow = arr_find(row, function (candidates) { return (candidates.indexOf(i) >= 0) });
+        var inCol = arr_find(col, function (candidates) { return (candidates.indexOf(i) >= 0) });
+        var inBox = arr_find(box, function (candidates) { return (candidates.indexOf(i) >= 0) });
+        if (inBox.length == 1) {
+          k = inBox[0];
+          deduced = true;
+          p.markYes((n*(j%n)) + (k%n), (n*Math.floor(j/n)) + Math.floor(k/n), i);
+        }
+        if (inRow.length == 1) {
+          k = inRow[0];
+          deduced = true;
+          p.markYes(k, j, i);
+        }
+        if (inCol.length == 1) {
+          k = inCol[0];
+          deduced = true;
+          p.markYes(k, j, i);
+        }
+      }
+    }
+    return deduced;
   }
 
   // Attempts to solve the puzzle.
   // Returns a puzzle or null if the puzzle is inconsistent.
   self.solve = function (p) {
+    p.resetCandidates();
+    if (!self.markAll(p)) return false;
+    var original = p.clone();
+    var reduced = false;
+    while (self.reduce(p)) {
+      reduced = true;
+    }
+
     // Reduce until it cannot be reduced.
     // Make a guess
     // Reduce again

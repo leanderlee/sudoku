@@ -26,6 +26,11 @@ Sudoku.Puzzle = function (grid, candidates, n) {
     }
   }
 
+  // Marks v at (x,y) to be the value
+  self.markYes = function (x,y,v) {
+    candidates[y][x] = [v];
+  }
+
   // Marks v at (x,y) to be a potential value
   self.markPossible = function (x,y,v) {
     var id = candidates[y][x].indexOf(v);
@@ -40,7 +45,9 @@ Sudoku.Puzzle = function (grid, candidates, n) {
   }
 
   // Gets the potential numbers for (x,y)
+  // If the number is already set, then there is no need to check.
   self.candidates = function (x,y) {
+    if (self.get(x,y) != 0) return [self.get(x,y)];
     return candidates[y][x];
   }
 

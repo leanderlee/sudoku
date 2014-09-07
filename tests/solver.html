@@ -23,7 +23,8 @@
       }
     };
 
-    test("solver row fetching", function () {
+    module("solver")
+    test("row fetching", function () {
       var puzzle = new Sudoku.Puzzle([
         [1,2,3, 4,5,6, 7,8,9],
         [0,0,0, 0,0,0, 0,0,0],
@@ -41,7 +42,7 @@
       deepEqual(solver.getRow(0, puzzle), [1,2,3,4,5,6,7,8,9], "Grabbed first row of puzzle")
       deepEqual(solver.getRow(3, puzzle), [2,3,4,5,6,7,8,9,1], "Grabbed fourth row of puzzle")
     });
-    test("solver col fetching", function () {
+    test("col fetching", function () {
       var puzzle = new Sudoku.Puzzle([
         [1,0,0, 2,0,0, 0,0,0],
         [2,0,0, 3,0,0, 0,0,0],
@@ -59,7 +60,7 @@
       deepEqual(solver.getCol(0, puzzle), [1,2,3,4,5,6,7,8,9], "Grabbed first col of puzzle")
       deepEqual(solver.getCol(3, puzzle), [2,3,4,5,6,7,8,9,1], "Grabbed fourth col of puzzle")
     });
-    test("solver box fetching", function () {
+    test("box fetching", function () {
       var puzzle = new Sudoku.Puzzle([
         [1,2,3, 0,0,0, 0,0,0],
         [4,5,6, 0,0,0, 0,0,0],
@@ -78,7 +79,7 @@
       deepEqual(solver.getBox(1, 1, puzzle), [2,3,4,5,6,7,8,9,1], "Grabbed box (1,1) of puzzle")
       deepEqual(solver.getBox(1, 2, puzzle), [3,4,5,6,7,8,9,1,2], "Grabbed box (1,2) of puzzle")
     });
-    test("solver boxnum", function () {
+    test("boxnum", function () {
       var solver = new Sudoku.Solver();
       equal(solver.getBoxNum(0,0,3), 0);
       equal(solver.getBoxNum(1,0,3), 1);
@@ -99,7 +100,7 @@
       equal(solver.getBoxNum(4,5,3), 7);
       equal(solver.getBoxNum(5,5,3), 8);
     })
-    test("solver mark all", function () {
+    test("mark all", function () {
       var puzzle, solver;
       solver = new Sudoku.Solver();
       puzzle = new Sudoku.Puzzle([
@@ -130,7 +131,7 @@
       solver.markAll(p1);
       compare(p1, puzzle);
     });
-    test("solver set", function () {
+    test("set", function () {
       var puzzle, solver;
       solver = new Sudoku.Solver();
       puzzle = new Sudoku.Puzzle([
@@ -160,6 +161,196 @@
       ok(!p1.isCandidate(1,0,2), "After mark all, 2 is no longer a candidate of (1,0) in p1.")
       ok(!p1.isCandidate(0,1,2), "After mark all, 2 is no longer a candidate of (0,1) in p1.")
     });
+
+    module("reduce")
+    test("box", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [1,2,3, 0,0,0, 0,0,0],
+        [4,5,6, 0,0,0, 0,0,0],
+        [7,8,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 1,2,3, 0,0,0],
+        [0,1,0, 4,5,6, 0,0,0],
+        [0,0,0, 7,8,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,1],
+        [0,0,1, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,1, 0,0,0]
+      ]);
+      solver.markAll(puzzle);
+      ok(solver.reduce(puzzle), "Puzzle should be reducible");
+      equal(puzzle.get(2,2), 9, "Should deduce the value 9 at (2,2)")
+      equal(puzzle.get(5,5), 9, "Should deduce the value 9 at (5,5)")
+    });
+    test("row", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [1,2,3, 5,4,6, 7,8,0],
+        [4,5,6, 0,0,0, 0,0,0],
+        [7,8,0, 1,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 1,0,0],
+        [2,1,9, 6,0,4, 8,7,3],
+        [0,0,0, 0,1,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,1],
+        [0,0,1, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,1, 0,0,0]
+      ]);
+      solver.markAll(puzzle);
+      ok(solver.reduce(puzzle), "Puzzle should be reducible");
+      equal(puzzle.get(8,0), 9, "Should deduce the value 9 at (8,0)")
+      equal(puzzle.get(4,4), 5, "Should deduce the value 5 at (4,4)")
+    });
+    test("col", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [1,0,0, 0,2,0, 0,0,0],
+        [2,0,0, 0,3,0, 0,0,0],
+        [3,0,0, 0,4,0, 0,0,0],
+
+        [4,0,0, 0,5,0, 0,0,0],
+        [5,0,0, 0,0,0, 0,0,0],
+        [6,0,0, 0,7,0, 0,0,0],
+
+        [7,0,0, 0,8,0, 0,0,0],
+        [8,0,0, 0,9,0, 0,0,0],
+        [0,0,0, 0,1,0, 0,0,0]
+      ]);
+      solver.markAll(puzzle);
+      ok(solver.reduce(puzzle), "Puzzle should be reducible");
+      equal(puzzle.get(0,8), 9, "Should deduce the value 9 at (0,8)")
+      equal(puzzle.get(4,4), 6, "Should deduce the value 6 at (4,4)")
+    });
+
+    module("deduce")
+    test("row/col", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [1,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 1,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 1,0,0],
+        [0,1,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,1,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,1],
+        [0,0,1, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,1, 0,0,0]
+      ]);
+      solver.markAll(puzzle);
+      ok(solver.deduce(puzzle), "Puzzle should be deducible");
+      deepEqual(puzzle.candidates(7,1), [1], "(7,1) can only have one possible value");
+    });
+    test("box/col", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [0,0,0, 0,0,0, 0,2,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,3,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 1,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,1],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0]
+      ]);
+      solver.markAll(puzzle);
+      ok(solver.deduce(puzzle), "Puzzle should be deducible");
+      deepEqual(puzzle.candidates(7,1), [1], "(7,1) can only have one possible value");
+    });
+    test("box/row", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [1,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 2,0,3],
+        [0,0,0, 1,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0]
+      ]);
+      solver.markAll(puzzle);
+      ok(solver.deduce(puzzle), "Puzzle should be deducible");
+      deepEqual(puzzle.candidates(7,1), [1], "(7,1) can only have one possible value");
+    });
+    test("box/row/col", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [1,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 2,0,0],
+        [0,0,0, 0,0,0, 4,3,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,1],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0]
+      ]);
+      solver.markAll(puzzle);
+      ok(solver.deduce(puzzle), "Puzzle should be deducible");
+      deepEqual(puzzle.candidates(7,1), [1], "(7,1) can only have one possible value");
+    });
+    test("box/row/col implied 1", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [1,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,1,0, 0,0,0],
+
+        [0,1,0, 0,0,0, 2,0,0],
+        [0,0,0, 0,0,0, 3,0,0],
+        [0,0,0, 1,0,0, 4,0,0],
+
+        [0,0,0, 0,0,0, 0,1,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0]
+      ]);
+      solver.markAll(puzzle);
+      ok(solver.deduce(puzzle), "Puzzle should be deducible");
+      deepEqual(puzzle.candidates(8,4), [1], "(8,4) can only have one possible value");
+    });
+    test("box/row/col implied 2 (SKIPPED)", function () {
+      return expect(0);
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [1,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,1,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 2,0,0],
+        [0,0,0, 0,0,0, 3,0,0],
+        [0,0,0, 0,0,0, 4,0,0],
+
+        [0,0,0, 0,0,0, 0,1,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0]
+      ]);
+      solver.markAll(puzzle);
+      ok(solver.deduce(puzzle), "Puzzle should be deducible");
+      deepEqual(puzzle.candidates(8,4), [1], "(8,4) can only have one possible value");
+    });
+
+    module("solutions")
     test("basic solution", function () {
       var puzzle = new Sudoku.Puzzle([
         [1,0,0, 0,0,0, 0,0,2],
