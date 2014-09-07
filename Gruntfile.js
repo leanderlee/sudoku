@@ -3,7 +3,7 @@ module.exports = function (grunt) {
     require('load-grunt-tasks')(grunt);
 
     grunt.initConfig({
-        
+
         watch: {
             html: {
               files: ['{,*/}*.{js,html}'],
@@ -39,11 +39,16 @@ module.exports = function (grunt) {
               hostname: '*',
             }
           }
+        },
+
+        qunit: {
+          all: ['tests/*.html']
         }
 
     });
 
     grunt.registerTask('build', ['sass']);
+    grunt.registerTask('test', ['qunit:all']);
     grunt.registerTask('default', [
         'build',
         'connect:server',
