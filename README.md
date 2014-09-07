@@ -117,9 +117,9 @@ One limitation is noted by [this skipped test](https://github.com/leanderlee/sud
 
 Where we see the candidate at (6,1) should be 1, because 1 cannot exist in the box below it.
 
-In addition, add the ability to recognize more complex techniques, as described in the site,
-such as Swordfish, X-Wing and X-Y Wing, and looking at the relationships between linked candidates
-(the principle behind colouring technique.)
+In addition, add the ability to recognize more [complex techniques](http://www.su-doku.net/tech2.php),
+as described in the link, such as Swordfish, X-Wing and X-Y Wing, and looking at the relationships 
+between linked candidates (the principle behind colouring technique.)
 
 ##### Keeping track of critical decisions
 As we solve the puzzle, the solver should also keep track of which guess would be
