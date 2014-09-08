@@ -114,6 +114,7 @@ Sudoku.Solver = function () {
         p.markNo((Math.floor(x/n)*n) + (k%n), (Math.floor(y/n)*n) + Math.floor(k/n), v);
       }
     }
+    return true;
   }
 
   // Goes through each number, and marks the other cells as impossible,
@@ -161,7 +162,7 @@ Sudoku.Solver = function () {
   }
 
   // Takes a marked puzzle and sets new values based on its candidates.
-  // Returns true if reduced, false if inconsistent or irreducible.
+  // Returns true if reduced, false if irreducible and undefined if inconsistent.
   self.reduce = function (p) {
     var n = p.n();
     var candidates = [];
@@ -169,10 +170,13 @@ Sudoku.Solver = function () {
     for (var i = 0; i < n*n; i++) {
       for (var j = 0; j < n*n; j++) {
         candidates = p.candidates(i,j);
-        if (candidates.length == 1 && p.get(i,j) == 0) {
-          // Reducible!
+        if (candidates.length == 0) {
+          return undefined;
+        } else if (candidates.length == 1 && p.get(i,j) == 0) {
           reducible = true;
-          self.set(i,j,candidates[0],p)
+          if (!self.set(i,j,candidates[0],p)) {
+            return undefined;
+          }
         }
       }
     }
@@ -197,41 +201,107 @@ Sudoku.Solver = function () {
         var inBox = arr_find(box, function (candidates) { return (candidates.indexOf(i) >= 0) });
         if (inBox.length == 1) {
           k = inBox[0];
-          deduced = true;
-          p.markYes((n*(j%n)) + (k%n), (n*Math.floor(j/n)) + Math.floor(k/n), i);
+          var x = (n*(j%n)) + (k%n);
+          var y = (n*Math.floor(j/n)) + Math.floor(k/n);
+          if (p.get(x, y) == 0) {
+            deduced = true;
+            p.markYes((n*(j%n)) + (k%n), (n*Math.floor(j/n)) + Math.floor(k/n), i);
+          }
         }
         if (inRow.length == 1) {
           k = inRow[0];
-          deduced = true;
-          p.markYes(k, j, i);
+          if (p.get(k, j) == 0) {
+            deduced = true;
+            p.markYes(k, j, i);
+          }
         }
         if (inCol.length == 1) {
           k = inCol[0];
-          deduced = true;
-          p.markYes(k, j, i);
+          if (p.get(j, k) == 0) {
+            deduced = true;
+            p.markYes(j, k, i);
+          }
         }
       }
     }
     return deduced;
   }
 
-  // Attempts to solve the puzzle.
+  // Continually deduces/reduces p until it cannot be reduced.
+  // Returns true if successful, false if p is inconsistent.
+  var markAndDeduce = function (p) {
+    var reduction;
+    self.deduce(p);
+    while (reduction = self.reduce(p)) {
+      self.deduce(p); // Make new deductions
+    }
+    return (reduction !== undefined);
+  }
+
+  // Looks for a guess to make
+  // Returns an object with the x,y, and its candidates.
+  // If there are none, then it returns null.
+  var findGuess = function (p) {
+    var n = p.n();
+    for (var i = 0; i < n*n; i++) {
+      for (var j = 0; j < n*n; j++) {
+        if (p.candidates(i,j).length > 1 && p.get(i,j) == 0) {
+          return [i,j];
+        }
+      }
+    }
+    return null;
+  }
+
+  // Takes an annotated puzzle and attempts to solve it.
   // Returns a puzzle or null if the puzzle is inconsistent.
-  self.solve = function (p) {
-    p.resetCandidates();
-    if (!self.markAll(p)) return false;
-    var original = p.clone();
-    var reduced = false;
-    while (self.reduce(p)) {
-      reduced = true;
+  self.solveMarkedPuzzle = function (original) {
+    var puzzle = original.clone();
+    if (puzzle.isSolved()) return puzzle;
+
+    // Deduce/reduce as much as we can.
+    markAndDeduce(puzzle);
+    if (puzzle.isSolved()) return puzzle;
+
+    // We are stuck now. Let's make a guess.
+    var pivot = findGuess(puzzle);
+    if (!pivot) return null;
+
+    // Pick the next candidate.
+    var candidates = puzzle.candidates(pivot[0], pivot[1]);
+    if (candidates.length == 0) return null; // Tried all options.
+
+    for (var i = 0; i < candidates.length; i++) {
+      var val = candidates[i];
+      puzzle.markYes(pivot[0], pivot[1], val);
+      var solved = self.solveMarkedPuzzle(puzzle);
+      if (solved) {
+        // Guess worked!
+        return solved;
+      }
     }
 
-    // Reduce until it cannot be reduced.
-    // Make a guess
-    // Reduce again
-    // If it becomes inconsistent, try another guess.
-    // Keep guessing until it is solved.
-    return p;
+    // None of the candidates worked.
+    return null;
+  }
+
+  // Attempts to solve any puzzle.
+  // Returns a puzzle or null if the puzzle is inconsistent.
+  self.solve = function (original) {
+    var puzzle = original.clone();
+    if (puzzle.isSolved()) return puzzle;
+
+    // Start by going over what we know
+    puzzle.resetCandidates();
+    if (!self.markAll(puzzle)) {
+      return false;
+    }
+
+    var solution = self.solveMarkedPuzzle(puzzle);
+    if (solution) {
+      console.log("Solution:\n", solution+'')
+    }
+    return solution;
   }
 
 

@@ -47,8 +47,7 @@ Sudoku.Puzzle = function (grid, candidates, n) {
   // Gets the potential numbers for (x,y)
   // If the number is already set, then there is no need to check.
   self.candidates = function (x,y) {
-    if (self.get(x,y) != 0) return [self.get(x,y)];
-    return candidates[y][x];
+    return (self.get(x,y) && [self.get(x,y)]) || candidates[y][x];
   }
 
   // Returns a boolean for if v is a candidate at (x,y)
@@ -81,6 +80,16 @@ Sudoku.Puzzle = function (grid, candidates, n) {
     }
   }
 
+  // solved
+  self.isSolved = function () {
+    for (var i = 0; i < n*n; i++) {
+      for (var j = 0; j < n*n; j++) {
+        if (self.get(i,j) == 0) return false;
+      }
+    }
+    return true;
+  }
+
   // Clones the puzzle
   self.clone = function () {
     var newGrid = [];
@@ -96,6 +105,22 @@ Sudoku.Puzzle = function (grid, candidates, n) {
     return new Sudoku.Puzzle(newGrid, newCandidates, n);
   }
 
+  // toString
+  self.toString = function () {
+    var str = "";
+    for (var i = 0; i < n*n; i++) {
+      if (i%n == 0 && i != 0) {
+        str += "\n";
+      }
+      for (var j = 0; j < n; j++) {
+        if (j != 0) str += " ";
+        str += " ";
+        str += grid[i].slice(j*n,(j+1)*n).join(" ")
+      }
+      str += "\n";
+    }
+    return str;
+  }
 
   var init = function () {
 

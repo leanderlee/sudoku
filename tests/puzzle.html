@@ -36,6 +36,9 @@
       puzzle.markOneOf(0, 1, [2,3]);
       deepEqual(puzzle.candidates(0, 1), [2,3], "Expect [2,3] if marked as one of those");
 
+      puzzle.markYes(0, 1, 2);
+      deepEqual(puzzle.candidates(0, 1), [2], "Expect 2 to be the only candidate");
+
     });
 
     test("cloning", function () {
