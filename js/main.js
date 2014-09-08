@@ -1,14 +1,13 @@
+var Sudoku = Sudoku || {};
+console.log(Sudoku)
 $(function () {
-  "use strict";
-
-  var Sudoku = Sudoku || {};
 
   var ui = new Sudoku.UI($("#app"));
-  var grid = Sudoku.Maker.blank();
-  
+  var grid = Sudoku.Maker.random();
+
   var puzzle = new Sudoku.Puzzle(grid);
 
-  ui.begin();
-  ui.draw(puzzle);
+  //ui.begin();
+  ui.draw(puzzle).appendTo("#app");
 
 })
