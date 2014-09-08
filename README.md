@@ -127,6 +127,11 @@ the most valuable to completing the puzzle (which decisions will have the most i
 I think this might be possible using a priority heap and keeping track of how candidate
 decisions will affect other candidates (maybe with a ref count or point system.)
 
+##### Improving the maker
+Turns out, creating Sudoku puzzles of varying difficulty efficiently is a fairly challenging problem.
+[This paper](http://zhangroup.aporc.org/images/files/Paper_3485.pdf) has a very good approach that I
+think we could potentially implement into the maker in the future.
+
 ##### N > 3
 Sudoku of 16x16, 25x25, and more! That would be awesome. Technically, it's already implemented!
 
