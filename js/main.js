@@ -1,5 +1,4 @@
 var Sudoku = Sudoku || {};
-console.log(Sudoku)
 $(function () {
   var ui;
 

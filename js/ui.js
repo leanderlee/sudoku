@@ -8,9 +8,9 @@ Sudoku.UI = function (container) {
 
   self.dismissDialog = function () {
     var element = $(".dialog", container).get(0);
-    element.classList.remove("appear");
+    $(".dialog", container).removeClass("appear");
     element.offsetWidth = element.offsetWidth;
-    element.classList.add("dismissed");
+    $(".dialog", container).addClass("dismissed");
     setTimeout(function () { $(".dialog").hide().removeClass("dismissed"); }, 400);
     $(".overlay", container).fadeOut(300);
   }
@@ -48,9 +48,18 @@ Sudoku.UI = function (container) {
   }
   self.solveGame = function () {
     if (!puzzle) return;
-    solved = solver.solve(puzzle);
-    self.clearPuzzle();
-    self.draw(solved).appendTo(container);
+    var markedPuzzle = currentPuzzle.clone();
+    solved = solver.solve(markedPuzzle);
+    if (!solved) {
+      return self.showDialog("We can't solve this puzzle! It's impossible!", { text: "Oh no!" });
+    }
+    $(".puzzle .cell input", container).each(function () {
+      var x = $(this).data("x");
+      var y = $(this).data("y");
+      if (markedPuzzle.get(x,y) == 0) {
+        $(this).val(solved.get(x,y));
+      }
+    })
   }
   self.checkPuzzle = function () {
     if (!currentPuzzle) return;
@@ -135,7 +144,7 @@ Sudoku.UI = function (container) {
               console.log($(this).data("x"), $(this).data("y"), (!isNaN(val) ? val : 0));
               currentPuzzle.set($(this).data("x"), $(this).data("y"), (!isNaN(val) ? val : 0));
             });
-            $input.hide().fadeIn(1000+Math.random()*2000);
+            $input.hide().fadeIn(2000+Math.random()*2000);
             $cell.appendTo($row);
           }
           $row.appendTo($box);
