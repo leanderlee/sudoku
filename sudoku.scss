@@ -18,7 +18,7 @@ body {
 }
 
 $break-small: 500px;
-$break-large: 1200px;
+$break-large: 650px;
 
 #app {
   text-align: center;
@@ -130,7 +130,26 @@ $break-large: 1200px;
       color: #9f9f9f;
       z-index: 2;
       @include unselectable();
+      -webkit-animation: bounce-down 1000ms linear normal 500ms;
+      animation: bounce-down 1000ms linear normal 500ms;
     }
+
+    .notes {
+      position: absolute;
+      right: 20px;
+      z-index: 2;
+      @include unselectable();
+      -webkit-animation: bounce-down 1000ms linear normal 300ms;
+      animation: bounce-down 1000ms linear normal 300ms;
+
+      i {
+        font-size: 16px;
+      }
+      &.on {
+        color: #53ED65;
+      }
+    }
+
 
     .trigger {
       position: absolute;
@@ -155,6 +174,7 @@ $break-large: 1200px;
       position: absolute;
       width: 100%;
       margin-top: -50px;
+      white-space: nowrap;
 
       a {
         text-decoration: none;
@@ -178,8 +198,8 @@ $break-large: 1200px;
         -webkit-animation: bounce-down 1000ms linear both;
         animation: bounce-down 1000ms linear both;
       }
-      .timer {
-        @media screen and (max-width: $break-small) {
+      .timer, .notes {
+        @media screen and (max-width: $break-large) {
           display: none;
         }
       }
@@ -191,6 +211,9 @@ $break-large: 1200px;
     border: 2px solid #1e1e1e;
     margin-top: 15px;
 
+    &.annotate .cell input:focus {
+      background: #B0F7B8;
+    }
     &.paused {
       pointer-events: none;
       @include blur(10);
@@ -212,6 +235,34 @@ $break-large: 1200px;
       border: 1px solid #1e1e1e;
       @media screen and (max-width: $break-small) {
         width: 30px; height: 30px;
+      }
+
+      .annotations {
+        pointer-events: none;
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        white-space: normal;
+        color: #7f7f7f;
+        text-align: right;
+        @include unselectable();
+        direction: rtl;
+        -webkit-column-count: 3;
+        -moz-column-count: 3;
+        column-count: 3;
+
+        .number {
+          display: inline-block;
+          width: 8px; height: 16px;
+          font-size: 12px;
+          padding: 0 4px;
+          @media screen and (max-width: $break-small) {
+            padding: 0 2px; width: 8px; height: 8px;
+            font-size: 8px;
+          }
+        }
       }
 
       input {

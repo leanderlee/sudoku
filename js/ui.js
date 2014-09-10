@@ -41,6 +41,37 @@ Sudoku.UI = function (container) {
     var duration = previousDuration + Math.floor((currentTime - startTime)/1000);
     $(".timer .time").text(durationStr(duration));
   }
+  self.updateAnnotations = function (x,y) {
+    var candidates = currentPuzzle.candidates(x,y);
+    var $annotations = $(".cell input[data-x=" + x + "][data-y=" + y + "]").parents(".cell").find(".annotations");
+    if (currentPuzzle.get(x,y) !== 0) return $annotations.empty();
+    $(".number", $annotations).each(function () {
+      if (candidates.indexOf($(this).data("num")) < 0) {
+        $(this).remove();
+      }
+    })
+    for (var p = 0; p < candidates.length; p++) {
+      if (!$(".number[data-num=" + candidates[p] + "]", $annotations).size()) {
+        var $number = $("<span />").addClass("number");
+        $number.attr("data-num", candidates[p]).text(candidates[p]).appendTo($annotations);
+      }
+    }
+  }
+  self.annotateMode = function (set) {
+    var isOn = $(".notes", container).hasClass("on");
+    if (set !== undefined) {
+      if (set) {
+        $(".notes", container).addClass("on");
+        $(".puzzle", container).addClass("annotate");
+        $(".puzzle input.last-focus", container).focus();
+      } else {
+        $(".notes", container).removeClass("on");
+        $(".puzzle", container).removeClass("annotate");
+      }
+      return set;
+    }
+    return isOn;
+  }
   self.dismissDialog = function () {
     var element = $(".dialog", container).get(0);
     $(".dialog", container).removeClass("appear");
@@ -73,9 +104,6 @@ Sudoku.UI = function (container) {
       $(".dialog .button.btn2", container).hide();
     }
   };
-  self.showAbout = function () {
-
-  }
   self.clearPuzzle = function () {
     $(".puzzle", container).remove();
   }
@@ -85,7 +113,15 @@ Sudoku.UI = function (container) {
     var grid = Sudoku.Maker.random();
     puzzle = new Sudoku.Puzzle(grid);
     currentPuzzle = puzzle.clone();
-    self.draw(puzzle).appendTo(container);
+    var n = currentPuzzle.n();
+    for (var i = 0; i < n*n; i++) {
+      for (var j = 0; j < n*n; j++) {
+        for (var k = 1; k <= n*n; k++) {
+          currentPuzzle.markNo(j,i,k);
+        }
+      }
+    }
+    self.draw().appendTo(container);
   }
   self.solveGame = function () {
     if (!puzzle) return;
@@ -109,6 +145,7 @@ Sudoku.UI = function (container) {
   self.checkPuzzle = function () {
     if (!currentPuzzle) return;
     var markedPuzzle = currentPuzzle.clone();
+    markedPuzzle.resetCandidates();
     var markAll = solver.markAll(markedPuzzle);
     var deduce = solver.deduce(markedPuzzle);
     var reduce = solver.reduce(markedPuzzle);
@@ -127,6 +164,9 @@ Sudoku.UI = function (container) {
     $(this).parents("header").addClass("shown");
     return false;
   })
+  $(".notes", container).click(function (e) {
+    self.annotateMode(!self.annotateMode());
+  });
   $("header .timer", container).click(function (e) {
     if ($(".puzzle", container).hasClass("paused")) {
       self.resumeTimer();
@@ -167,7 +207,7 @@ Sudoku.UI = function (container) {
     $("header").removeClass("shown");
   })
 
-  self.draw = function (puzzle) {
+  self.draw = function () {
     var VK_LEFT = 37;
     var VK_RIGHT = 39;
     var VK_UP = 38;
@@ -197,7 +237,7 @@ Sudoku.UI = function (container) {
     var VK_NUMBER_8 = 56;
     var VK_NUMBER_9 = 57;
     var $puzzle = $("<div />").addClass("puzzle");
-    var n = puzzle.n();
+    var n = currentPuzzle.n();
     for (var i = 0; i < n; i++) {
       var $boxRow = $("<div />").addClass("row");
       for (var j = 0; j < n; j++) {
@@ -206,16 +246,20 @@ Sudoku.UI = function (container) {
           var $row = $("<div />").addClass("row");
           for (var m = 0; m < n; m++) {
             var $cell = $("<div />").addClass("cell");
+            var $annotations = $("<div />").addClass("annotations");
             var $input = $("<input />").attr("type", "tel");
             var x = (j*n) + m;
             var y = (i*n) + k;
-            var v = puzzle.get(x,y);
+            var v = currentPuzzle.get(x,y);
             if (v !== 0) {
               $input.val(v);
               $input.addClass('given');
               $input.attr('readonly', true);
               $input.attr("data-v", v);
+            } else {
+              self.updateAnnotations(x,y);
             }
+            $annotations.appendTo($cell);
             $input.attr("data-x", x);
             $input.attr("data-y", y);
             $input.appendTo($cell);
@@ -235,7 +279,10 @@ Sudoku.UI = function (container) {
     };
 
     $(".cell input", $puzzle).on("blur", function(e) {
+      $(".puzzle input.last-focus", container).removeClass("last-focus");
+      $(this).addClass("last-focus");
       clearColours();
+      self.annotateMode(false);
       // iOS fix
       setTimeout(function() {
         window.scrollTo(document.body.scrollLeft, document.body.scrollTop);
@@ -259,7 +306,7 @@ Sudoku.UI = function (container) {
       var val = parseInt($(this).val());
       currentPuzzle.set($(this).data("x"), $(this).data("y"), (!isNaN(val) ? val : 0));
       switch (keyCode) {
-        case VK_SHIFT: shiftDown = false; break;
+        case VK_SHIFT: self.annotateMode(false); shiftDown = false; break;
         default: break;
       }
     });
@@ -268,8 +315,27 @@ Sudoku.UI = function (container) {
       var n = currentPuzzle.n()*currentPuzzle.n();
       var x = $(this).data("x");
       var y = $(this).data("y");
+      var inputNum = function (v, input) {
+        var vn = v ? parseInt(v) : 0;
+        if (shiftDown || $(".notes.on", container).size()) {
+          if (vn == 0) {
+            var vn = input.parents(".cell").find(".annotations .number:last").attr("data-num");
+          }
+          if (currentPuzzle.isCandidate(x,y,vn)) {
+            currentPuzzle.markNo(x,y,vn);
+          } else {
+            currentPuzzle.markPossible(x,y,vn);
+          }
+          self.updateAnnotations(x,y);
+        } else {
+          currentPuzzle.set(x,y,vn);
+          self.updateAnnotations(x,y);
+          clearColours();
+          input.attr('data-v', v).val(v).trigger("focus");
+        }
+      }
       switch (keyCode) {
-        case VK_SHIFT: shiftDown = true; break;
+        case VK_SHIFT: self.annotateMode(true); shiftDown = true; break;
         case VK_LEFT: $(".puzzle input[data-x=" + ((n+x-1)%n) + "][data-y=" + y + "]", container).focus(); break;
         case VK_RIGHT: $(".puzzle input[data-x=" + ((x+1)%n) + "][data-y=" + y + "]", container).focus(); break;
         case VK_UP: $(".puzzle input[data-x=" + x + "][data-y=" + ((n+y-1)%n) + "]", container).focus(); break;
@@ -287,25 +353,25 @@ Sudoku.UI = function (container) {
       switch (keyCode) {
         case VK_BACKSPACE:
         case VK_NUMBER_0:
-        case VK_NUMPAD_0: currentPuzzle.set(x,y,0); clearColours(); $(this).attr('data-v', '').val('').trigger("focus"); break;
+        case VK_NUMPAD_0: inputNum('', $(this)); break;
         case VK_NUMBER_1:
-        case VK_NUMPAD_1: currentPuzzle.set(x,y,1); clearColours(); $(this).attr('data-v', '1').val('1').trigger("focus"); break;
+        case VK_NUMPAD_1: inputNum('1', $(this)); break;
         case VK_NUMBER_2:
-        case VK_NUMPAD_2: currentPuzzle.set(x,y,2); clearColours(); $(this).attr('data-v', '2').val('2').trigger("focus"); break;
+        case VK_NUMPAD_2: inputNum('2', $(this)); break;
         case VK_NUMBER_3:
-        case VK_NUMPAD_3: currentPuzzle.set(x,y,3); clearColours(); $(this).attr('data-v', '3').val('3').trigger("focus"); break;
+        case VK_NUMPAD_3: inputNum('3', $(this)); break;
         case VK_NUMBER_4:
-        case VK_NUMPAD_4: currentPuzzle.set(x,y,4); clearColours(); $(this).attr('data-v', '4').val('4').trigger("focus"); break;
+        case VK_NUMPAD_4: inputNum('4', $(this)); break;
         case VK_NUMBER_5:
-        case VK_NUMPAD_5: currentPuzzle.set(x,y,5); clearColours(); $(this).attr('data-v', '5').val('5').trigger("focus"); break;
+        case VK_NUMPAD_5: inputNum('5', $(this)); break;
         case VK_NUMBER_6:
-        case VK_NUMPAD_6: currentPuzzle.set(x,y,6); clearColours(); $(this).attr('data-v', '6').val('6').trigger("focus"); break;
+        case VK_NUMPAD_6: inputNum('6', $(this)); break;
         case VK_NUMBER_7:
-        case VK_NUMPAD_7: currentPuzzle.set(x,y,7); clearColours(); $(this).attr('data-v', '7').val('7').trigger("focus"); break;
+        case VK_NUMPAD_7: inputNum('7', $(this)); break;
         case VK_NUMBER_8:
-        case VK_NUMPAD_8: currentPuzzle.set(x,y,8); clearColours(); $(this).attr('data-v', '8').val('8').trigger("focus"); break;
+        case VK_NUMPAD_8: inputNum('8', $(this)); break;
         case VK_NUMBER_9:
-        case VK_NUMPAD_9: currentPuzzle.set(x,y,9); clearColours(); $(this).attr('data-v', '9').val('9').trigger("focus"); break;
+        case VK_NUMPAD_9: inputNum('9', $(this)); break;
         default: break;
       }
       if (currentPuzzle.isSolved()) {
