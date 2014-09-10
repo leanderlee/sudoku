@@ -40,7 +40,7 @@ $break-large: 1200px;
     z-index: 3;
     cursor: default;
     width: 400px;
-    margin: 100px auto 0;
+    margin: 70px auto 0;
     margin-left: -200px;
     background-color: #1e1e1e;
     color: #ffffff;
@@ -50,6 +50,7 @@ $break-large: 1200px;
     @media screen and (max-width: $break-small) {
       width: 300px;
       margin-left: -150px;
+      margin-top: 40px;
     }
 
     &.appear {

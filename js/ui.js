@@ -34,6 +34,7 @@ Sudoku.UI = function (container) {
     previousDuration += duration;
     if (timer) clearInterval(timer);
     $(".puzzle,header", container).addClass("paused");
+    $("body").trigger("click");
   }
   self.updateTimer = function () {
     var currentTime = new Date().getTime();
