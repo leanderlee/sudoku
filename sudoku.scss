@@ -170,7 +170,13 @@ $break-large: 1200px;
         }
 
         &:focus {
-          background: #bdc3c7;;
+          background: #A2D4FC;
+        }
+        &.guide {
+          background: #EBF6FF;
+        }
+        &.similar {
+          background: #C9FAC0;
         }
 
         &.given {
