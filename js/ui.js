@@ -168,77 +168,6 @@ Sudoku.UI = function (container) {
             $input.attr("data-x", x);
             $input.attr("data-y", y);
             $input.appendTo($cell);
-            $input.blur(function(e) {
-              $(".puzzle input.guide").removeClass("guide");
-              $(".puzzle input.similar").removeClass("similar");
-            });
-            $input.focus(function(e) {
-              var x = $(this).data("x");
-              var y = $(this).data("y");
-              var n = currentPuzzle.n()*currentPuzzle.n();
-              var v = currentPuzzle.get(x,y);
-              for (var i = 0; i < n; i++) {
-                if (i != x) $(".puzzle input[data-x=" + i + "][data-y=" + y + "]", container).addClass("guide");
-                if (i != y) $(".puzzle input[data-x=" + x + "][data-y=" + i + "]", container).addClass("guide");
-              }
-              if (v) {
-                $(".puzzle input[data-v='" + v + "']", container).addClass("similar");
-              }
-            });
-            $input.keyup(function(e) {
-              var keyCode = (window.event) ? e.which : e.keyCode;
-              switch (keyCode) {
-                case VK_SHIFT: shiftDown = false; break;
-                default: break;
-              }
-            });
-            $input.keydown(function(e) {
-              var keyCode = (window.event) ? e.which : e.keyCode;
-              var n = currentPuzzle.n()*currentPuzzle.n();
-              var x = $(this).data("x");
-              var y = $(this).data("y");
-              switch (keyCode) {
-                case VK_SHIFT: shiftDown = true; break;
-                case VK_LEFT: $(".puzzle input[data-x=" + ((n+x-1)%n) + "][data-y=" + y + "]", container).focus(); break;
-                case VK_RIGHT: $(".puzzle input[data-x=" + ((x+1)%n) + "][data-y=" + y + "]", container).focus(); break;
-                case VK_UP: $(".puzzle input[data-x=" + x + "][data-y=" + ((n+y-1)%n) + "]", container).focus(); break;
-                case VK_DOWN: $(".puzzle input[data-x=" + x + "][data-y=" + ((y+1)%n) + "]", container).focus(); break;
-                case VK_ENTER:
-                case VK_TAB:
-                  if (shiftDown) {
-                    $(".puzzle input[data-x=" + (x == 0 ? n-1 : x-1) + "][data-y=" + ((n+y-(x == 0 ? 1 : 0))%n) + "]", container).focus(); break;
-                  } else {
-                    $(".puzzle input[data-x=" + (x == n-1 ? 0 : x+1) + "][data-y=" + ((y+(x == n-1 ? 1 : 0))%n) + "]", container).focus(); break;
-                  }
-                case VK_BACKSPACE:
-                case VK_NUMBER_0:
-                case VK_NUMPAD_0: currentPuzzle.set(x,y,0); $(this).attr('data-v', '').val('').trigger("blur").trigger("focus"); break;
-                case VK_NUMBER_1:
-                case VK_NUMPAD_1: currentPuzzle.set(x,y,1); $(this).attr('data-v', '1').val('1').trigger("blur").trigger("focus"); break;
-                case VK_NUMBER_2:
-                case VK_NUMPAD_2: currentPuzzle.set(x,y,2); $(this).attr('data-v', '2').val('2').trigger("blur").trigger("focus"); break;
-                case VK_NUMBER_3:
-                case VK_NUMPAD_3: currentPuzzle.set(x,y,3); $(this).attr('data-v', '3').val('3').trigger("blur").trigger("focus"); break;
-                case VK_NUMBER_4:
-                case VK_NUMPAD_4: currentPuzzle.set(x,y,4); $(this).attr('data-v', '4').val('4').trigger("blur").trigger("focus"); break;
-                case VK_NUMBER_5:
-                case VK_NUMPAD_5: currentPuzzle.set(x,y,5); $(this).attr('data-v', '5').val('5').trigger("blur").trigger("focus"); break;
-                case VK_NUMBER_6:
-                case VK_NUMPAD_6: currentPuzzle.set(x,y,6); $(this).attr('data-v', '6').val('6').trigger("blur").trigger("focus"); break;
-                case VK_NUMBER_7:
-                case VK_NUMPAD_7: currentPuzzle.set(x,y,7); $(this).attr('data-v', '7').val('7').trigger("blur").trigger("focus"); break;
-                case VK_NUMBER_8:
-                case VK_NUMPAD_8: currentPuzzle.set(x,y,8); $(this).attr('data-v', '8').val('8').trigger("blur").trigger("focus"); break;
-                case VK_NUMBER_9:
-                case VK_NUMPAD_9: currentPuzzle.set(x,y,9); $(this).attr('data-v', '9').val('9').trigger("blur").trigger("focus"); break;
-                default: break;
-              }
-              e.preventDefault();
-            });
-            $input.keyup(function(e) {
-              var val = parseInt($(this).val());
-              currentPuzzle.set($(this).data("x"), $(this).data("y"), (!isNaN(val) ? val : 0));
-            });
             $input.hide().fadeIn(2000+Math.random()*2000);
             $cell.appendTo($row);
           }
@@ -248,6 +177,80 @@ Sudoku.UI = function (container) {
       }
       $boxRow.appendTo($puzzle);
     }
+
+    var clearColours = function () {
+      $("input.guide", $puzzle).removeClass("guide");
+      $("input.similar", $puzzle).removeClass("similar");
+    };
+
+    $(".cell input", $puzzle).on("blur", function(e) {
+      clearColours();
+    });
+    $(".cell input", $puzzle).on("focus", function(e) {
+      var x = $(this).data("x");
+      var y = $(this).data("y");
+      var n = currentPuzzle.n()*currentPuzzle.n();
+      var v = currentPuzzle.get(x,y);
+      for (var i = 0; i < n; i++) {
+        if (i != x) $(".puzzle input[data-x=" + i + "][data-y=" + y + "]", container).addClass("guide");
+        if (i != y) $(".puzzle input[data-x=" + x + "][data-y=" + i + "]", container).addClass("guide");
+      }
+      if (v) {
+        $(".puzzle input[data-v='" + v + "']", container).not(this).addClass("similar");
+      }
+    });
+    $(".cell input", $puzzle).on("keyup", function(e) {
+      var keyCode = (window.event) ? e.which : e.keyCode;
+      var val = parseInt($(this).val());
+      currentPuzzle.set($(this).data("x"), $(this).data("y"), (!isNaN(val) ? val : 0));
+      switch (keyCode) {
+        case VK_SHIFT: shiftDown = false; break;
+        default: break;
+      }
+    });
+    $(".cell input", $puzzle).on("keydown", function(e) {
+      var keyCode = (window.event) ? e.which : e.keyCode;
+      var n = currentPuzzle.n()*currentPuzzle.n();
+      var x = $(this).data("x");
+      var y = $(this).data("y");
+      switch (keyCode) {
+        case VK_SHIFT: shiftDown = true; break;
+        case VK_LEFT: $(".puzzle input[data-x=" + ((n+x-1)%n) + "][data-y=" + y + "]", container).focus(); break;
+        case VK_RIGHT: $(".puzzle input[data-x=" + ((x+1)%n) + "][data-y=" + y + "]", container).focus(); break;
+        case VK_UP: $(".puzzle input[data-x=" + x + "][data-y=" + ((n+y-1)%n) + "]", container).focus(); break;
+        case VK_DOWN: $(".puzzle input[data-x=" + x + "][data-y=" + ((y+1)%n) + "]", container).focus(); break;
+        case VK_ENTER:
+        case VK_TAB:
+          if (shiftDown) {
+            $(".puzzle input[data-x=" + (x == 0 ? n-1 : x-1) + "][data-y=" + ((n+y-(x == 0 ? 1 : 0))%n) + "]", container).focus(); break;
+          } else {
+            $(".puzzle input[data-x=" + (x == n-1 ? 0 : x+1) + "][data-y=" + ((y+(x == n-1 ? 1 : 0))%n) + "]", container).focus(); break;
+          }
+        case VK_BACKSPACE:
+        case VK_NUMBER_0:
+        case VK_NUMPAD_0: currentPuzzle.set(x,y,0); clearColours(); $(this).attr('data-v', '').val('').trigger("focus"); break;
+        case VK_NUMBER_1:
+        case VK_NUMPAD_1: currentPuzzle.set(x,y,1); clearColours(); $(this).attr('data-v', '1').val('1').trigger("focus"); break;
+        case VK_NUMBER_2:
+        case VK_NUMPAD_2: currentPuzzle.set(x,y,2); clearColours(); $(this).attr('data-v', '2').val('2').trigger("focus"); break;
+        case VK_NUMBER_3:
+        case VK_NUMPAD_3: currentPuzzle.set(x,y,3); clearColours(); $(this).attr('data-v', '3').val('3').trigger("focus"); break;
+        case VK_NUMBER_4:
+        case VK_NUMPAD_4: currentPuzzle.set(x,y,4); clearColours(); $(this).attr('data-v', '4').val('4').trigger("focus"); break;
+        case VK_NUMBER_5:
+        case VK_NUMPAD_5: currentPuzzle.set(x,y,5); clearColours(); $(this).attr('data-v', '5').val('5').trigger("focus"); break;
+        case VK_NUMBER_6:
+        case VK_NUMPAD_6: currentPuzzle.set(x,y,6); clearColours(); $(this).attr('data-v', '6').val('6').trigger("focus"); break;
+        case VK_NUMBER_7:
+        case VK_NUMPAD_7: currentPuzzle.set(x,y,7); clearColours(); $(this).attr('data-v', '7').val('7').trigger("focus"); break;
+        case VK_NUMBER_8:
+        case VK_NUMPAD_8: currentPuzzle.set(x,y,8); clearColours(); $(this).attr('data-v', '8').val('8').trigger("focus"); break;
+        case VK_NUMBER_9:
+        case VK_NUMPAD_9: currentPuzzle.set(x,y,9); clearColours(); $(this).attr('data-v', '9').val('9').trigger("focus"); break;
+        default: break;
+      }
+      e.preventDefault();
+    });
     return $puzzle;
   }
 
