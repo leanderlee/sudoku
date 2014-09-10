@@ -160,7 +160,8 @@ body {
   font-size: 28px;
   text-align: center;
   background: #ffffff;
-  color: #000000;
+  font-weight: 400;
+  color: #5F5F5F;
 }
 @media screen and (max-width: 500px) {
   #app .puzzle .cell input {
@@ -178,6 +179,7 @@ body {
 }
 #app .puzzle .cell input.given {
   font-size: 30px;
+  color: #1E1E1F;
   font-weight: 700;
 }
 @media screen and (max-width: 500px) {

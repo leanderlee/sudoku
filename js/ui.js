@@ -64,7 +64,10 @@ Sudoku.UI = function (container) {
       var x = $(this).data("x");
       var y = $(this).data("y");
       if (markedPuzzle.get(x,y) == 0) {
-        $(this).val(solved.get(x,y));
+        var v = solved.get(x,y);
+        currentPuzzle.set(x,y,v);
+        $(this).attr("data-v", v+'');
+        $(this).val(v);
       }
     })
   }
