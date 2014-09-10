@@ -64,7 +64,9 @@ This Sudoku game features a bunch of cool things I wanted to make, including:
  - Puzzle inconsistency detection
  - Hints
  - Annotation system
- - Responsive CSS (for various layouts)
+ - Responsive layout (for screens of all sizes!)
+ - Open font ([Montserrat](http://www.google.com/fonts/specimen/Montserrat))
+ - Icon fonts (from [Fontello](http://fontello.com/))
  - CSS3 animated dialogs
  - Row/column tracking
  - Number highlighting
