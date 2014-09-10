@@ -47,8 +47,25 @@ body {
   -webkit-animation: bounce-jelly 400ms reverse linear both;
   animation: bounce-jelly 400ms reverse linear both;
 }
+#app .dialog a {
+  text-decoration: none;
+  color: #ffffff;
+}
+#app .dialog a i {
+  color: #5f5f5f;
+  font-size: 22px;
+}
+#app .dialog a i:hover {
+  color: #ffffff;
+}
 #app .dialog .message {
   padding: 30px 30px 20px;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 #app .dialog .options {
   background-color: #eee;
@@ -61,6 +78,12 @@ body {
   padding: 10px 40px;
   text-align: center;
   color: rgba(0, 0, 0, 0.5);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 #app .dialog .options .button.button:hover {
   color: rgba(0, 0, 0, 0.9);
@@ -81,15 +104,39 @@ body {
   text-transform: uppercase;
   font-size: 14px;
   text-align: center;
-  background-color: #1E1E1F;
+  background-color: #1e1e1e;
   color: #EBEDF0;
   cursor: pointer;
 }
+#app header.paused .trigger i {
+  display: none;
+}
+#app header .timer {
+  position: absolute;
+  left: 20px;
+  font-weight: 400;
+  color: #9f9f9f;
+  z-index: 2;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 #app header .trigger {
   position: absolute;
-  width: 100%;
+  width: 400px;
   font-size: 18px;
   margin-top: 50px;
+  left: 50%;
+  margin-left: -200px;
+}
+@media screen and (max-width: 500px) {
+  #app header .trigger {
+    width: 200px;
+    margin-left: -100px;
+  }
 }
 #app header .trigger.appear {
   margin-top: 0px;
@@ -121,10 +168,21 @@ body {
   -webkit-animation: bounce-down 1000ms linear both;
   animation: bounce-down 1000ms linear both;
 }
+@media screen and (max-width: 500px) {
+  #app header.shown .timer {
+    display: none;
+  }
+}
 #app .puzzle {
   display: inline-block;
-  border: 2px solid black;
+  border: 2px solid #1e1e1e;
   margin-top: 15px;
+}
+#app .puzzle.paused {
+  pointer-events: none;
+  -webkit-filter: blur(10px);
+  filter: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg"><filter id="blur"><feGaussianBlur stdDeviation="10" /></filter></svg>#blur');
+  /* Firefox */
 }
 #app .puzzle .row {
   white-space: nowrap;
@@ -132,7 +190,7 @@ body {
 }
 #app .puzzle .box {
   display: inline-block;
-  border: 1px solid black;
+  border: 1px solid #1e1e1e;
 }
 #app .puzzle .cell {
   display: inline-block;
@@ -140,7 +198,7 @@ body {
   height: 50px;
   overflow: hidden;
   position: relative;
-  border: 1px solid black;
+  border: 1px solid #1e1e1e;
 }
 @media screen and (max-width: 500px) {
   #app .puzzle .cell {
@@ -162,6 +220,12 @@ body {
   background: #ffffff;
   font-weight: 400;
   color: #5F5F5F;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 @media screen and (max-width: 500px) {
   #app .puzzle .cell input {

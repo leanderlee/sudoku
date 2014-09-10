@@ -6,7 +6,40 @@ Sudoku.UI = function (container) {
   var puzzle = null;
   var currentPuzzle = null;
   var shiftDown = false;
+  var timer = null;
+  var startTime = null;
+  var previousDuration = 0;
 
+  var durationStr = function (duration) {
+    var hrs = Math.floor(duration/3600)
+    duration = duration % 3600;
+    var mins = Math.floor(duration/60)
+    var secs = duration % 60;
+    return (hrs > 0 ? hrs + ":" : '') + (mins < 10 ? '0':'') + mins + ":" + (secs < 10 ? '0':'') + secs;
+  }
+  self.startTimer = function () {
+    previousDuration = 0;
+    $(".timer .time").text("00:00");
+    self.resumeTimer();
+  }
+  self.resumeTimer = function () {
+    startTime = new Date().getTime();
+    if (timer) clearInterval(timer);
+    timer = setInterval(function () { self.updateTimer() }, 400);
+    $(".puzzle,header", container).removeClass("paused");
+  }
+  self.pauseTimer = function () {
+    var currentTime = new Date().getTime();
+    var duration = Math.floor((currentTime - startTime)/1000);
+    previousDuration += duration;
+    if (timer) clearInterval(timer);
+    $(".puzzle,header", container).addClass("paused");
+  }
+  self.updateTimer = function () {
+    var currentTime = new Date().getTime();
+    var duration = previousDuration + Math.floor((currentTime - startTime)/1000);
+    $(".timer .time").text(durationStr(duration));
+  }
   self.dismissDialog = function () {
     var element = $(".dialog", container).get(0);
     $(".dialog", container).removeClass("appear");
@@ -17,7 +50,7 @@ Sudoku.UI = function (container) {
   }
   self.showDialog = function (message, btn1, btn2) {
     var noop = function (){};
-    $(".overlay", container).fadeIn(700);
+    $(".overlay", container).fadeIn(700).click(function () { self.dismissDialog(); });
     $(".dialog", container).removeClass("dismissed").addClass("appear").show();
     $(".dialog .message", container).html(message || "");
     if (btn1) {
@@ -46,6 +79,7 @@ Sudoku.UI = function (container) {
     $(".puzzle", container).remove();
   }
   self.newGame = function () {
+    self.startTimer();
     self.clearPuzzle();
     var grid = Sudoku.Maker.random();
     puzzle = new Sudoku.Puzzle(grid);
@@ -77,7 +111,6 @@ Sudoku.UI = function (container) {
     var markAll = solver.markAll(markedPuzzle);
     var deduce = solver.deduce(markedPuzzle);
     var reduce = solver.reduce(markedPuzzle);
-    console.log("markAll:", markAll+'', "deduce:", deduce, "reduce:", reduce);
     if (!markAll ||
         deduce === undefined ||
         reduce === undefined) {
@@ -87,11 +120,22 @@ Sudoku.UI = function (container) {
     }
   }
 
-  $("header", container).click(function () {
+  $("header .trigger", container).click(function () {
+    if ($(this).parents("header").hasClass("paused")) return;
     $("header .trigger", container).removeClass("appear");
-    $(this).addClass("shown");
+    $(this).parents("header").addClass("shown");
     return false;
   })
+  $("header .timer", container).click(function (e) {
+    if ($(".puzzle", container).hasClass("paused")) {
+      self.resumeTimer();
+      $("i", this).removeClass("icon-play").addClass("icon-pause");
+    } else {
+      self.pauseTimer();
+      $("i", this).addClass("icon-play").removeClass("icon-pause");
+    }
+    return false;
+  });
   $("header nav .new", container).click(function () {
     self.showDialog("Start a new game?<br />This will clear your progress!",
       { action: function () {
@@ -111,7 +155,10 @@ Sudoku.UI = function (container) {
     self.showDialog([
       "This Sudoku game was crafted with love.", "",
       "Made in Toronto, Canada.",
-      "Leander Lee &copy 2014."
+      "Leander Lee &copy 2014.", "",
+      "<a target='_blank' href='https://github.com/leanderlee/sudoku'>Fork me on <i class='icon-github-circled'></i></a>",
+      "<a target='_blank' href='https://twitter.com/leanderlee'>Follow me on <i class='icon-twitter'></i></a>",
+      "<a target='_blank' href='https://linkedin.com/in/leanderlee'>Connect with me on <i class='icon-linkedin'></i></a>",
     ].join("<br />"), { text: "Okay!" });
   })
   $("body").click(function () {
@@ -188,6 +235,10 @@ Sudoku.UI = function (container) {
 
     $(".cell input", $puzzle).on("blur", function(e) {
       clearColours();
+      // iOS fix
+      setTimeout(function() {
+        window.scrollTo(document.body.scrollLeft, document.body.scrollTop);
+      }, 0);
     });
     $(".cell input", $puzzle).on("focus", function(e) {
       var x = $(this).data("x");
@@ -229,6 +280,10 @@ Sudoku.UI = function (container) {
           } else {
             $(".puzzle input[data-x=" + (x == n-1 ? 0 : x+1) + "][data-y=" + ((y+(x == n-1 ? 1 : 0))%n) + "]", container).focus(); break;
           }
+        default: break;
+      }
+      if (puzzle.get(x,y) !== 0) return e.preventDefault();
+      switch (keyCode) {
         case VK_BACKSPACE:
         case VK_NUMBER_0:
         case VK_NUMPAD_0: currentPuzzle.set(x,y,0); clearColours(); $(this).attr('data-v', '').val('').trigger("focus"); break;
@@ -251,6 +306,10 @@ Sudoku.UI = function (container) {
         case VK_NUMBER_9:
         case VK_NUMPAD_9: currentPuzzle.set(x,y,9); clearColours(); $(this).attr('data-v', '9').val('9').trigger("focus"); break;
         default: break;
+      }
+      if (currentPuzzle.isSolved()) {
+        self.pauseTimer();
+        self.showDialog("Congratulations! You have finished this puzzle in " + durationStr(previousDuration) + "!", { text: "Awww yeah!" });
       }
       e.preventDefault();
     });
