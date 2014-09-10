@@ -58,9 +58,10 @@ Sudoku.UI = function (container) {
     var markAll = solver.markAll(markedPuzzle);
     var deduce = solver.deduce(markedPuzzle);
     var reduce = solver.reduce(markedPuzzle);
-    // console.log("markAll:", markAll+'', "deduce:", deduce, "reduce:", reduce);
+    console.log("markAll:", markAll+'', "deduce:", deduce, "reduce:", reduce);
     if (!markAll ||
-        (deduce && reduce === undefined)) {
+        deduce === undefined ||
+        reduce === undefined) {
       self.showDialog("Uh oh, something doesn't look right!", { text: "Okay..." });
     } else {
       self.showDialog("Yay, everything looks good!", { text: "Okay!" });

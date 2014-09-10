@@ -20,39 +20,50 @@ Sudoku.Puzzle = function (grid, candidates, n) {
 
   // Marks v at (x,y) to be not the value
   self.markNo = function (x,y,v) {
-    var id = candidates[y][x].indexOf(v);
-    if (id >= 0) {
-      candidates[y][x].splice(id, 1);
-    }
+    if (v < 1 || v > n*n) return;
+    candidates[y][x][v-1] = false;
   }
 
   // Marks v at (x,y) to be the value
   self.markYes = function (x,y,v) {
-    candidates[y][x] = [v];
+    if (v < 1 || v > n*n) return;
+    candidates[y][x] = [];
+    for (var i = 0; i < n*n; i++) {
+      candidates[y][x][i] = (i == v-1);
+    }
   }
 
   // Marks v at (x,y) to be a potential value
   self.markPossible = function (x,y,v) {
-    var id = candidates[y][x].indexOf(v);
-    if (id < 0) {
-      candidates[y][x].push(v);
-    }
+    if (v < 1 || v > n*n) return;
+    candidates[y][x][v-1] = true;
   }
 
   // Marks (x,y) is one of the values in arr
   self.markOneOf = function (x,y,arr) {
-    candidates[y][x] = arr;
+    candidates[y][x] = [];
+    for (var i = 0; i < n*n; i++) {
+      candidates[y][x][i] = (arr.indexOf(i+1) >= 0);
+    }
   }
 
   // Gets the potential numbers for (x,y)
   // If the number is already set, then there is no need to check.
   self.candidates = function (x,y) {
-    return (self.get(x,y) && [self.get(x,y)]) || candidates[y][x];
+    if (self.get(x,y)) return [self.get(x,y)];
+    var arr = [];
+    for (var i = 0; i < n*n; i++) {
+      if (candidates[y][x][i]) {
+        arr.push(i+1);
+      }
+    }
+    return arr;
   }
 
   // Returns a boolean for if v is a candidate at (x,y)
   self.isCandidate = function (x,y,v) {
-    return (candidates[y][x].indexOf(v) >= 0);
+    if (v < 1 || v > n*n) return;
+    return candidates[y][x][v-1];
   }
 
   // Sets the grid to 0
@@ -98,7 +109,10 @@ Sudoku.Puzzle = function (grid, candidates, n) {
       newCandidates[i] = [];
       newGrid[i] = grid[i].slice();
       for (var j = 0; j < n*n; j++) {
-        newCandidates[i][j] = candidates[i][j].slice(0);
+        newCandidates[i][j] = [];
+        for (var k = 0; k < n*n; k++) {
+          newCandidates[i][j][k] = candidates[i][j][k];
+        }
       }
     }
 

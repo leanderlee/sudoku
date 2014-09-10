@@ -187,7 +187,7 @@ Sudoku.Solver = function () {
   }
 
   // Takes a marked puzzle and rules out numbers based on other candidates.
-  // Returns true if something was deduced, false otherwise.
+  // Returns true if something was deduced, false if not, undefined if inconsistent
   self.deduce = function (p) {
     var n = p.n();
     var deduced = false;
@@ -199,6 +199,9 @@ Sudoku.Solver = function () {
         var inRow = arr_find(row, function (candidates) { return (candidates.indexOf(i) >= 0) });
         var inCol = arr_find(col, function (candidates) { return (candidates.indexOf(i) >= 0) });
         var inBox = arr_find(box, function (candidates) { return (candidates.indexOf(i) >= 0) });
+        if (!inBox.length || !inRow.length || !inCol.length) {
+          return undefined;
+        }
         if (inBox.length == 1) {
           k = inBox[0];
           var x = (n*(j%n)) + (k%n);
@@ -230,12 +233,19 @@ Sudoku.Solver = function () {
   // Continually deduces/reduces p until it cannot be reduced.
   // Returns true if successful, false if p is inconsistent.
   var markAndDeduce = function (p) {
-    var reduction;
     self.deduce(p);
-    while (reduction = self.reduce(p)) {
-      self.deduce(p); // Make new deductions
+    var reduction = self.reduce(p);
+    while (reduction) {
+      // Make new deductions
+      if (self.deduce(p) === undefined) {
+        return false;
+      }
+      reduction = self.reduce(p);
+      if (reduction === undefined) {
+        return false;
+      }
     }
-    return (reduction !== undefined);
+    return true;
   }
 
   // Looks for a guess to make
@@ -243,14 +253,19 @@ Sudoku.Solver = function () {
   // If there are none, then it returns null.
   var findGuess = function (p) {
     var n = p.n();
+    var pivot = null;
+    var current = 0;
     for (var i = 0; i < n*n; i++) {
       for (var j = 0; j < n*n; j++) {
-        if (p.candidates(i,j).length > 1 && p.get(i,j) == 0) {
-          return [i,j];
+        var candidates = p.candidates(i,j).length;
+        if (candidates > 1 && p.get(i,j) == 0 &&
+            (pivot == null || current > candidates)) {
+          current = candidates;
+          pivot = [i,j];
         }
       }
     }
-    return null;
+    return pivot;
   }
 
   // Takes an annotated puzzle and attempts to solve it.
@@ -260,7 +275,7 @@ Sudoku.Solver = function () {
     if (puzzle.isSolved()) return puzzle;
 
     // Deduce/reduce as much as we can.
-    markAndDeduce(puzzle);
+    if (!markAndDeduce(puzzle)) return null;
     if (puzzle.isSolved()) return puzzle;
 
     // We are stuck now. Let's make a guess.

@@ -336,8 +336,7 @@
       ok(solver.deduce(puzzle), "Puzzle should be deducible");
       deepEqual(puzzle.candidates(8,4), [1], "(8,4) can only have one possible value");
     });
-    test("box/row/col implied 2 (SKIPPED)", function () {
-      return expect(0);
+    test("box/row/col implied 2", function () {
       var puzzle, solver;
       solver = new Sudoku.Solver();
       puzzle = new Sudoku.Puzzle([
@@ -356,6 +355,25 @@
       solver.markAll(puzzle);
       ok(solver.deduce(puzzle), "Puzzle should be deducible");
       deepEqual(puzzle.candidates(6,1), [1], "(6,1) can only have one possible value");
+    });
+    test("box/row/col implied 2", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,1, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 3,0,0, 0,0,0],
+        [0,0,0, 4,0,0, 0,0,0],
+        [0,0,0, 5,0,0, 0,0,0],
+
+        [0,0,0, 0,1,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0]
+      ]);
+      ok(solver.markAll(puzzle), "Puzzle should be markable");
+      ok(solver.deduce(puzzle) === undefined, "Puzzle should be inconsistent");
     });
 
     module("solutions")
@@ -424,7 +442,6 @@
       compare(result, solution);
     });
     test("evil (skipped)", function () {
-      return expect(0);
       var puzzle = new Sudoku.Puzzle([
         [1,0,0, 0,0,0, 0,0,2],
         [0,9,0, 4,0,0, 0,5,0],
