@@ -110,8 +110,7 @@ Sudoku.UI = function (container) {
   self.newGame = function () {
     self.startTimer();
     self.clearPuzzle();
-    var grid = Sudoku.Maker.random();
-    puzzle = new Sudoku.Puzzle(grid);
+    puzzle = Sudoku.Maker.random();
     currentPuzzle = puzzle.clone();
     var n = currentPuzzle.n();
     for (var i = 0; i < n*n; i++) {
@@ -144,17 +143,10 @@ Sudoku.UI = function (container) {
   }
   self.checkPuzzle = function () {
     if (!currentPuzzle) return;
-    var markedPuzzle = currentPuzzle.clone();
-    markedPuzzle.resetCandidates();
-    var markAll = solver.markAll(markedPuzzle);
-    var deduce = solver.deduce(markedPuzzle);
-    var reduce = solver.reduce(markedPuzzle);
-    if (!markAll ||
-        deduce === undefined ||
-        reduce === undefined) {
-      self.showDialog("Uh oh, something doesn't look right!", { text: "Okay..." });
-    } else {
+    if (solver.isConsistent(currentPuzzle)) {
       self.showDialog("Yay, everything looks good!", { text: "Okay!" });
+    } else {
+      self.showDialog("Uh oh, something doesn't look right!", { text: "Okay..." });
     }
   }
 
@@ -279,8 +271,6 @@ Sudoku.UI = function (container) {
     };
 
     $(".cell input", $puzzle).on("blur", function(e) {
-      $(".puzzle input.last-focus", container).removeClass("last-focus");
-      $(this).addClass("last-focus");
       clearColours();
       // iOS fix
       setTimeout(function() {
@@ -288,6 +278,8 @@ Sudoku.UI = function (container) {
       }, 0);
     });
     $(".cell input", $puzzle).on("focus", function(e) {
+      $(".puzzle input.last-focus", container).removeClass("last-focus");
+      $(this).addClass("last-focus");
       var x = $(this).data("x");
       var y = $(this).data("y");
       var n = currentPuzzle.n()*currentPuzzle.n();

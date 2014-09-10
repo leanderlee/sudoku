@@ -118,7 +118,7 @@ $break-large: 650px;
     cursor: pointer;
 
     &.paused {
-      .trigger i {
+      .trigger i, .notes {
         display: none;
       }
     }
@@ -137,6 +137,7 @@ $break-large: 650px;
     .notes {
       position: absolute;
       right: 20px;
+      color: #9f9f9f;
       z-index: 2;
       @include unselectable();
       -webkit-animation: bounce-down 1000ms linear normal 300ms;

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>QUnit - Maker Class</title>
+  <link rel="stylesheet" href="//code.jquery.com/qunit/qunit-1.15.0.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+
+  <script src="libs/qunit.js"></script>
+  <script src="../js/puzzle.js"></script>
+  <script src="../js/solver.js"></script>
+  <script src="../js/maker.js"></script>
+
+  <script>
+    test("basic maker", function () {
+      var puzzle = Sudoku.Maker.random();
+      var solver = new Sudoku.Solver();
+      ok(puzzle, "There is a puzzle");
+      ok(solver.solve(puzzle), "Puzzle is solvable.");
+    });
+  </script>
+</body>
+</html>

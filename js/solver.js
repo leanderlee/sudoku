@@ -272,6 +272,7 @@ Sudoku.Solver = function () {
   // Returns a puzzle or null if the puzzle is inconsistent.
   self.solveMarkedPuzzle = function (original) {
     var puzzle = original.clone();
+    if (!self.isConsistent(puzzle)) return null;
     if (puzzle.isSolved()) return puzzle;
 
     // Deduce/reduce as much as we can.
@@ -317,6 +318,15 @@ Sudoku.Solver = function () {
       console.log("Solution:\n", solution+'')
     }
     return solution;
+  }
+
+  self.isConsistent = function (puzzle) {
+    var unmarkedPuzzle = puzzle.clone();
+    unmarkedPuzzle.resetCandidates();
+    var markAll = self.markAll(unmarkedPuzzle);
+    var deduce = self.deduce(unmarkedPuzzle);
+    var reduce = self.reduce(unmarkedPuzzle);
+    return (markAll && deduce !== undefined && reduce !== undefined);
   }
 
 

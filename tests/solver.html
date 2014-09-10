@@ -372,9 +372,42 @@
         [0,0,0, 0,0,0, 0,0,0],
         [0,0,0, 0,0,0, 0,0,0]
       ]);
-      ok(solver.markAll(puzzle), "Puzzle should be markable");
-      ok(solver.deduce(puzzle) === undefined, "Puzzle should be inconsistent");
+      ok(!solver.isConsistent(puzzle), "Puzzle should be inconsistent");
     });
+
+    module("consistency");
+    test("basic consistency", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle();
+      ok(solver.isConsistent(puzzle), "Puzzle should be consistent");
+    });
+    test("basic set 1", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle([
+        [0,0,0, 0,0,1, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0],
+        [0,0,0, 0,0,0, 0,0,0]
+      ]);
+      ok(solver.isConsistent(puzzle), "Puzzle should be consistent");
+    });
+    test("basic set 2", function () {
+      var puzzle, solver;
+      solver = new Sudoku.Solver();
+      puzzle = new Sudoku.Puzzle();
+      puzzle.set(1,1,1);
+      ok(solver.isConsistent(puzzle), "Puzzle should be consistent");
+    });
+
 
     module("solutions")
     test("easy", function () {

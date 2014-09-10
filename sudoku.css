@@ -109,7 +109,7 @@ body {
   color: #EBEDF0;
   cursor: pointer;
 }
-#app header.paused .trigger i {
+#app header.paused .trigger i, #app header.paused .notes {
   display: none;
 }
 #app header .timer {
@@ -130,6 +130,7 @@ body {
 #app header .notes {
   position: absolute;
   right: 20px;
+  color: #9f9f9f;
   z-index: 2;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
