@@ -48,7 +48,29 @@ they are quite mainstream. They are well supported and have been relatively well
 battle-tested for production environments.
  
 ### Compatibility
-Chrome, Firefox, IE, Opera, iOS, Android
+ - Chrome
+ - Safari
+ - Firefox
+ - IE (9+ functional; limited visuals)
+ - Opera (now Chrome)
+ - iOS (Works well!)
+ - Android (Emulation tested only)
+
+### Features
+
+This Sudoku game features a bunch of cool things I wanted to make, including:
+
+ - Custom solver engine
+ - Puzzle inconsistency detection
+ - Hints
+ - Annotation system
+ - Responsive CSS (for various layouts)
+ - CSS3 animated dialogs
+ - Row/column tracking
+ - Number highlighting
+ - Mobile numpad (on iOS, at least)
+ - Simplistic UI
+ - Start/stop timer
 
 ======
 
@@ -99,25 +121,7 @@ As we have aluded to from above, we can make significant performance improvement
 by simply implementing more techniques that allow the puzzles to go further
 before resolving to a "stuck" state that requires guessing.
 
-One limitation is noted by [this skipped test](https://github.com/leanderlee/sudoku/blob/bd166dc5a584fbefecfbcde364001a3f97294ce4/tests/solver.html#L350), where this type of deduction is missing:
-
-```
- [1,0,0, 0,0,0, 0,0,0]
- [0,0,0, 0,0,0, 0,0,0]
- [0,0,0, 0,1,0, 0,0,0]
-
- [0,0,0, 0,0,0, 2,0,0]
- [0,0,0, 0,0,0, 3,0,0]
- [0,0,0, 0,0,0, 4,0,0]
-
- [0,0,0, 0,0,0, 0,1,0]
- [0,0,0, 0,0,0, 0,0,0]
- [0,0,0, 0,0,0, 0,0,0]
-```
-
-Where we see the candidate at (6,1) should be 1, because 1 cannot exist in the box below it.
-
-In addition, add the ability to recognize more [complex techniques](http://www.su-doku.net/tech2.php),
+Specifically, the ability to recognize more [complex techniques](http://www.su-doku.net/tech2.php),
 as described in the link, such as Swordfish, X-Wing and X-Y Wing, and looking at the relationships 
 between linked candidates (the principle behind colouring technique.)
 
