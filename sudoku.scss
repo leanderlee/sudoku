@@ -155,7 +155,7 @@ $break-large: 650px;
       position: absolute;
       width: 400px;
       font-size: 18px;
-      margin-top: 50px;
+      margin-top: -50px;
       left: 50%;
       margin-left: -200px;
       @media screen and (max-width: $break-small) {

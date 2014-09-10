@@ -282,7 +282,6 @@ Sudoku.UI = function (container) {
       $(".puzzle input.last-focus", container).removeClass("last-focus");
       $(this).addClass("last-focus");
       clearColours();
-      self.annotateMode(false);
       // iOS fix
       setTimeout(function() {
         window.scrollTo(document.body.scrollLeft, document.body.scrollTop);
