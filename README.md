@@ -114,7 +114,19 @@ be a good idea to use a Maker object. This allows us to add more logic in the
 future to create puzzles (with various levels of difficulties).
 
 ##### DOM/UI Class Relationship
-I decided to use a UI class to control the state of the DOM elements.
+I decided to use a `UI` class to control the state of the DOM elements. There is a Main.js controller
+that kicks off the interface. All it does is instantiate the UI and start a new game.
+
+The `UI` class is the main controller, that assigns the DOM references for the board, timer and dialog
+box. It is responsible for the behaviours of the header, such as starting a new game, start/stopping
+the timer and coordinating between the puzzle on the board and the menu options. The `UI` class owns a
+`Solver` that is responsible for checking consistency of the puzzle and possibly solving the entire
+puzzle upon the user's request.
+
+##### Board/UI Class Relationship
+The `Board` class is responsible for the activities of the actual Sudoku board. This includes generating
+the cells, syncing the puzzle model state with the DOM elements on screen, properly colouring and 
+displaying the puzzle, and the annotations system.
 
 ### Further Expansion
 
@@ -140,5 +152,15 @@ think we could potentially implement into the maker in the future.
 
 ##### N > 3
 Sudoku of 16x16, 25x25, and more! That would be awesome. Technically, it's already implemented!
+
+##### Offline storage
+Using `localStorage` you could store the serialized version of the puzzle state. That way even if
+you accidentally close the page, or hit refresh, you won't lose your puzzle! It's these kinds of
+details that will really make this app a usable and pleasant experience for people.
+
+##### Undo/redo stack
+I noticed while playing that if I accidentally hit a number while something was selected I would 
+overwrite the number in that grid. For better user experience, it would be great if you could undo
+your last change!
 
 
