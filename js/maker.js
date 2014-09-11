@@ -3,7 +3,7 @@ Sudoku.Maker = {};
 Sudoku.Maker.random = function (difficulty, n) {
   n = n || 3;
   difficulty = difficulty || 0;
-  var numGivens = 22; // See paper in wiki.
+  var numGivens = 22; // See paper in README. This number tweaked for performance
   var maxGivens = numGivens + (Math.floor((100-difficulty)/100)*20);
 
   var givens = new Sudoku.Puzzle();
@@ -19,7 +19,6 @@ Sudoku.Maker.random = function (difficulty, n) {
     var assignment, c = 0;
     while (c < 10000 && (!assignment || !solver.isConsistent(p))) {
       c++;
-      console.log("Attempting", assignment);
       if (assignment) {
         // Attempted to set assignment, but was inconsistent.
         p.set(assignment.x, assignment.y, 0);
@@ -46,7 +45,6 @@ Sudoku.Maker.random = function (difficulty, n) {
   var throwout = numGivens;
   while (throwout < maxGivens && solver.solve(givens) && !givens.isSolved()) {
     last = givens.clone();
-    console.log("Trying", givens+'');
     givens = las_vegas(givens);
     throwout++;
   }
