@@ -314,9 +314,6 @@ Sudoku.Solver = function () {
     }
 
     var solution = self.solveMarkedPuzzle(puzzle);
-    if (solution) {
-      console.log("Solution:\n", solution+'')
-    }
     return solution;
   }
 

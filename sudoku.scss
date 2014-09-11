@@ -215,7 +215,7 @@ $break-large: 650px;
     &.annotate .cell input:focus {
       background: #B0F7B8;
     }
-    &.paused {
+    &.blurred {
       pointer-events: none;
       @include blur(10);
     }

@@ -3,189 +3,54 @@ Sudoku.UI = function (container) {
   var self = {};
 
   var solver = new Sudoku.Solver();
-  var puzzle = null;
-  var currentPuzzle = null;
-  var shiftDown = false;
-  var timer = null;
-  var startTime = null;
-  var previousDuration = 0;
+  var dialog = new Sudoku.Dialog($(".dialog", container), $(".overlay", container));
+  var board = new Sudoku.Board($(".puzzle", container), $(".notes", container), finishHandler);
 
-  var durationStr = function (duration) {
-    var hrs = Math.floor(duration/3600)
-    duration = duration % 3600;
-    var mins = Math.floor(duration/60)
-    var secs = duration % 60;
-    return (hrs > 0 ? hrs + ":" : '') + (mins < 10 ? '0':'') + mins + ":" + (secs < 10 ? '0':'') + secs;
-  }
-  self.startTimer = function () {
-    previousDuration = 0;
-    $(".timer .time").text("00:00");
-    self.resumeTimer();
-  }
-  self.resumeTimer = function () {
-    startTime = new Date().getTime();
-    if (timer) clearInterval(timer);
-    timer = setInterval(function () { self.updateTimer() }, 400);
-    $(".puzzle,header", container).removeClass("paused");
-  }
-  self.pauseTimer = function () {
-    var currentTime = new Date().getTime();
-    var duration = Math.floor((currentTime - startTime)/1000);
-    previousDuration += duration;
-    if (timer) clearInterval(timer);
-    $(".puzzle,header", container).addClass("paused");
+  var $header = $("header", container);
+
+  var pauseHandler = function () {
     $("body").trigger("click");
-  }
-  self.updateTimer = function () {
-    var currentTime = new Date().getTime();
-    var duration = previousDuration + Math.floor((currentTime - startTime)/1000);
-    $(".timer .time").text(durationStr(duration));
-  }
-  self.updateAnnotations = function (x,y) {
-    var candidates = currentPuzzle.candidates(x,y);
-    var $annotations = $(".cell input[data-x=" + x + "][data-y=" + y + "]").parents(".cell").find(".annotations");
-    if (currentPuzzle.get(x,y) !== 0) return $annotations.empty();
-    $(".number", $annotations).each(function () {
-      if (candidates.indexOf($(this).data("num")) < 0) {
-        $(this).remove();
-      }
-    })
-    for (var p = 0; p < candidates.length; p++) {
-      if (!$(".number[data-num=" + candidates[p] + "]", $annotations).size()) {
-        var $number = $("<span />").addClass("number");
-        $number.attr("data-num", candidates[p]).text(candidates[p]).appendTo($annotations);
-      }
+    $header.addClass("paused");
+    board.hide();
+  };
+  var resumeHandler = function () {
+    $header.removeClass("paused");
+    board.show();
+  };
+
+  var timer = new Sudoku.Timer($(".timer", container), pauseHandler, resumeHandler);
+
+  var finishHandler = function () {
+    timer.pause();
+    dialog.show("Congratulations! You have finished this puzzle in " + timer.duration() + "!", { text: "Awww yeah!" });
+  };
+  var newHandler = function () {
+    var newPuzzle = function () {
+      self.newGame();
     }
-  }
-  self.annotateMode = function (set) {
-    var isOn = $(".notes", container).hasClass("on");
-    if (set !== undefined) {
-      if (set) {
-        $(".notes", container).addClass("on");
-        $(".puzzle", container).addClass("annotate");
-        $(".puzzle input.last-focus", container).focus();
-      } else {
-        $(".notes", container).removeClass("on");
-        $(".puzzle", container).removeClass("annotate");
+    dialog.show("Start a new game?<br />This will clear your progress!", { action: newPuzzle }, {});
+  };
+  var solveHandler = function () {
+    var solvePuzzle = function () {
+      var markedPuzzle = board.puzzle();
+      solved = solver.solve(markedPuzzle);
+      if (!solved) {
+        dialog.show("We can't solve this puzzle! It's impossible!", { text: "Oh no!" });
+        return false;
       }
-      return set;
-    }
-    return isOn;
-  }
-  self.dismissDialog = function () {
-    var element = $(".dialog", container).get(0);
-    $(".dialog", container).removeClass("appear");
-    element.offsetWidth = element.offsetWidth;
-    $(".dialog", container).addClass("dismissed");
-    dismissTimeout = setTimeout(function () { $(".dialog").hide().removeClass("dismissed"); }, 400);
-    $(".overlay", container).fadeOut(300);
-  }
-  self.showDialog = function (message, btn1, btn2) {
-    var noop = function (){};
-    $(".overlay", container).fadeIn(700).click(function () { self.dismissDialog(); });
-    $(".dialog", container).removeClass("dismissed").addClass("appear").show();
-    $(".dialog .message", container).html(message || "");
-    if (btn1) {
-      $(".dialog .button.btn1", container).show().text(btn1.text || "Yes").off("click").on("click", function (e) {
-        if ((btn1.action || noop)(e) !== false) {
-          self.dismissDialog();
-        }
-      });
+      board.fill(solved);
+    };
+    dialog.show("Solve this puzzle for you?<br />(Complex puzzles may take a while!)", { action: solvePuzzle }, {});
+  };
+  var checkHandler = function () {
+    if (solver.isConsistent(board.puzzle())) {
+      dialog.show("Yay, everything looks good!", { text: "Okay!" });
     } else {
-      $(".dialog .button.btn1", container).hide();
-    }
-    if (btn2) {
-      $(".dialog .button.btn2", container).show().text(btn2.text || "No").off("click").on("click", function (e) {
-        if ((btn2.action || noop)(e) !== false) {
-          self.dismissDialog();
-        }
-      });
-    } else {
-      $(".dialog .button.btn2", container).hide();
+      dialog.show("Uh oh, something doesn't look right!", { text: "Okay..." });
     }
   };
-  self.clearPuzzle = function () {
-    $(".puzzle", container).remove();
-  }
-  self.newGame = function () {
-    self.startTimer();
-    self.clearPuzzle();
-    puzzle = Sudoku.Maker.random();
-    currentPuzzle = puzzle.clone();
-    var n = currentPuzzle.n();
-    for (var i = 0; i < n*n; i++) {
-      for (var j = 0; j < n*n; j++) {
-        for (var k = 1; k <= n*n; k++) {
-          currentPuzzle.markNo(j,i,k);
-        }
-      }
-    }
-    self.draw().appendTo(container);
-  }
-  self.solveGame = function () {
-    if (!puzzle) return;
-    var markedPuzzle = currentPuzzle.clone();
-    solved = solver.solve(markedPuzzle);
-    if (!solved) {
-      self.showDialog("We can't solve this puzzle! It's impossible!", { text: "Oh no!" });
-      return false;
-    }
-    $(".puzzle .cell input", container).each(function () {
-      var x = $(this).data("x");
-      var y = $(this).data("y");
-      if (markedPuzzle.get(x,y) == 0) {
-        var v = solved.get(x,y);
-        currentPuzzle.set(x,y,v);
-        $(this).attr("data-v", v+'');
-        $(this).val(v);
-      }
-    })
-  }
-  self.checkPuzzle = function () {
-    if (!currentPuzzle) return;
-    if (solver.isConsistent(currentPuzzle)) {
-      self.showDialog("Yay, everything looks good!", { text: "Okay!" });
-    } else {
-      self.showDialog("Uh oh, something doesn't look right!", { text: "Okay..." });
-    }
-  }
-
-  $("header .trigger", container).click(function () {
-    if ($(this).parents("header").hasClass("paused")) return;
-    $("header .trigger", container).removeClass("appear");
-    $(this).parents("header").addClass("shown");
-    return false;
-  })
-  $(".notes", container).click(function (e) {
-    self.annotateMode(!self.annotateMode());
-  });
-  $("header .timer", container).click(function (e) {
-    if ($(".puzzle", container).hasClass("paused")) {
-      self.resumeTimer();
-      $("i", this).removeClass("icon-play").addClass("icon-pause");
-    } else {
-      self.pauseTimer();
-      $("i", this).addClass("icon-play").removeClass("icon-pause");
-    }
-    return false;
-  });
-  $("header nav .new", container).click(function () {
-    self.showDialog("Start a new game?<br />This will clear your progress!",
-      { action: function () {
-          return self.newGame();
-      }}, {});
-  })
-  $("header nav .solve", container).click(function () {
-    self.showDialog("Solve this puzzle for you?<br />(Complex puzzles may take a while!)",
-      { action: function () {
-          return self.solveGame();
-      }}, {});
-  })
-  $("header nav .check", container).click(function () {
-    self.checkPuzzle();
-  })
-  $("header nav .about", container).click(function () {
-    self.showDialog([
+  var aboutHandler = function () {
+    dialog.show([
       "This Sudoku game was crafted with love.", "",
       "Made in Toronto, Canada.",
       "Leander Lee &copy 2014.", "",
@@ -193,186 +58,43 @@ Sudoku.UI = function (container) {
       "<a target='_blank' href='https://twitter.com/leanderlee'>Follow me on <i class='icon-twitter'></i></a>",
       "<a target='_blank' href='https://linkedin.com/in/leanderlee'>Connect with me on <i class='icon-linkedin'></i></a>",
     ].join("<br />"), { text: "Okay!" });
-  })
-  $("body").click(function () {
-    $("header .trigger", container).addClass("appear");
-    $("header").removeClass("shown");
-  })
+  };
 
-  self.draw = function () {
-    var VK_LEFT = 37;
-    var VK_RIGHT = 39;
-    var VK_UP = 38;
-    var VK_DOWN = 40;
-    var VK_BACKSPACE = 8;
-    var VK_TAB = 9;
-    var VK_ENTER = 13;
-    var VK_SHIFT = 16;
-    var VK_NUMPAD_0 = 96;
-    var VK_NUMPAD_1 = 97;
-    var VK_NUMPAD_2 = 98;
-    var VK_NUMPAD_3 = 99;
-    var VK_NUMPAD_4 = 100;
-    var VK_NUMPAD_5 = 101;
-    var VK_NUMPAD_6 = 102;
-    var VK_NUMPAD_7 = 103;
-    var VK_NUMPAD_8 = 104;
-    var VK_NUMPAD_9 = 105;
-    var VK_NUMBER_0 = 48;
-    var VK_NUMBER_1 = 49;
-    var VK_NUMBER_2 = 50;
-    var VK_NUMBER_3 = 51;
-    var VK_NUMBER_4 = 52;
-    var VK_NUMBER_5 = 53;
-    var VK_NUMBER_6 = 54;
-    var VK_NUMBER_7 = 55;
-    var VK_NUMBER_8 = 56;
-    var VK_NUMBER_9 = 57;
-    var $puzzle = $("<div />").addClass("puzzle");
-    var n = currentPuzzle.n();
-    for (var i = 0; i < n; i++) {
-      var $boxRow = $("<div />").addClass("row");
-      for (var j = 0; j < n; j++) {
-        var $box = $("<div />").addClass("box");
-        for (var k = 0; k < n; k++) {
-          var $row = $("<div />").addClass("row");
-          for (var m = 0; m < n; m++) {
-            var $cell = $("<div />").addClass("cell");
-            var $annotations = $("<div />").addClass("annotations");
-            var $input = $("<input />").attr("type", "tel");
-            var x = (j*n) + m;
-            var y = (i*n) + k;
-            var v = currentPuzzle.get(x,y);
-            if (v !== 0) {
-              $input.val(v);
-              $input.addClass('given');
-              $input.attr('readonly', true);
-              $input.attr("data-v", v);
-            } else {
-              self.updateAnnotations(x,y);
-            }
-            $annotations.appendTo($cell);
-            $input.attr("data-x", x);
-            $input.attr("data-y", y);
-            $input.appendTo($cell);
-            $input.hide().fadeIn(2000+Math.random()*2000);
-            $cell.appendTo($row);
-          }
-          $row.appendTo($box);
-        }
-        $box.appendTo($boxRow);
-      }
-      $boxRow.appendTo($puzzle);
-    }
+  var setupHeader = function () {
+    $("header .trigger", container).click(function () {
+      if (timer.isPaused()) return;
+      $(".trigger", $header).removeClass("appear");
+      $header.addClass("shown");
+      return false;
+    });
+    $("body").click(function () {
+      $(".trigger", $header).addClass("appear");
+      $header.removeClass("shown");
+    });
+  };
+  var setupNavigation = function () {
+    $("header nav .new", container).click(newHandler)
+    $("header nav .solve", container).click(solveHandler)
+    $("header nav .check", container).click(checkHandler)
+    $("header nav .about", container).click(aboutHandler)
+  };
 
-    var clearColours = function () {
-      $("input.guide", $puzzle).removeClass("guide");
-      $("input.similar", $puzzle).removeClass("similar");
-    };
+  setupHeader();
+  setupNavigation();
 
-    $(".cell input", $puzzle).on("blur", function(e) {
-      clearColours();
-      // iOS fix
-      setTimeout(function() {
-        window.scrollTo(document.body.scrollLeft, document.body.scrollTop);
-      }, 0);
-    });
-    $(".cell input", $puzzle).on("focus", function(e) {
-      $(".puzzle input.last-focus", container).removeClass("last-focus");
-      $(this).addClass("last-focus");
-      var x = $(this).data("x");
-      var y = $(this).data("y");
-      var n = currentPuzzle.n()*currentPuzzle.n();
-      var v = currentPuzzle.get(x,y);
-      for (var i = 0; i < n; i++) {
-        if (i != x) $(".puzzle input[data-x=" + i + "][data-y=" + y + "]", container).addClass("guide");
-        if (i != y) $(".puzzle input[data-x=" + x + "][data-y=" + i + "]", container).addClass("guide");
-      }
-      if (v) {
-        $(".puzzle input[data-v='" + v + "']", container).not(this).addClass("similar");
-      }
-    });
-    $(".cell input", $puzzle).on("keyup", function(e) {
-      var keyCode = (window.event) ? e.which : e.keyCode;
-      var val = parseInt($(this).val());
-      currentPuzzle.set($(this).data("x"), $(this).data("y"), (!isNaN(val) ? val : 0));
-      switch (keyCode) {
-        case VK_SHIFT: self.annotateMode(false); shiftDown = false; break;
-        default: break;
-      }
-    });
-    $(".cell input", $puzzle).on("keydown", function(e) {
-      var keyCode = (window.event) ? e.which : e.keyCode;
-      var n = currentPuzzle.n()*currentPuzzle.n();
-      var x = $(this).data("x");
-      var y = $(this).data("y");
-      var inputNum = function (v, input) {
-        var vn = v ? parseInt(v) : 0;
-        if (shiftDown || $(".notes.on", container).size()) {
-          if (vn == 0) {
-            var vn = input.parents(".cell").find(".annotations .number:last").attr("data-num");
-          }
-          if (currentPuzzle.isCandidate(x,y,vn)) {
-            currentPuzzle.markNo(x,y,vn);
-          } else {
-            currentPuzzle.markPossible(x,y,vn);
-          }
-          self.updateAnnotations(x,y);
-        } else {
-          currentPuzzle.set(x,y,vn);
-          self.updateAnnotations(x,y);
-          clearColours();
-          input.attr('data-v', v).val(v).trigger("focus");
-        }
-      }
-      switch (keyCode) {
-        case VK_SHIFT: self.annotateMode(true); shiftDown = true; break;
-        case VK_LEFT: $(".puzzle input[data-x=" + ((n+x-1)%n) + "][data-y=" + y + "]", container).focus(); break;
-        case VK_RIGHT: $(".puzzle input[data-x=" + ((x+1)%n) + "][data-y=" + y + "]", container).focus(); break;
-        case VK_UP: $(".puzzle input[data-x=" + x + "][data-y=" + ((n+y-1)%n) + "]", container).focus(); break;
-        case VK_DOWN: $(".puzzle input[data-x=" + x + "][data-y=" + ((y+1)%n) + "]", container).focus(); break;
-        case VK_ENTER:
-        case VK_TAB:
-          if (shiftDown) {
-            $(".puzzle input[data-x=" + (x == 0 ? n-1 : x-1) + "][data-y=" + ((n+y-(x == 0 ? 1 : 0))%n) + "]", container).focus(); break;
-          } else {
-            $(".puzzle input[data-x=" + (x == n-1 ? 0 : x+1) + "][data-y=" + ((y+(x == n-1 ? 1 : 0))%n) + "]", container).focus(); break;
-          }
-        default: break;
-      }
-      if (puzzle.get(x,y) !== 0) return e.preventDefault();
-      switch (keyCode) {
-        case VK_BACKSPACE:
-        case VK_NUMBER_0:
-        case VK_NUMPAD_0: inputNum('', $(this)); break;
-        case VK_NUMBER_1:
-        case VK_NUMPAD_1: inputNum('1', $(this)); break;
-        case VK_NUMBER_2:
-        case VK_NUMPAD_2: inputNum('2', $(this)); break;
-        case VK_NUMBER_3:
-        case VK_NUMPAD_3: inputNum('3', $(this)); break;
-        case VK_NUMBER_4:
-        case VK_NUMPAD_4: inputNum('4', $(this)); break;
-        case VK_NUMBER_5:
-        case VK_NUMPAD_5: inputNum('5', $(this)); break;
-        case VK_NUMBER_6:
-        case VK_NUMPAD_6: inputNum('6', $(this)); break;
-        case VK_NUMBER_7:
-        case VK_NUMPAD_7: inputNum('7', $(this)); break;
-        case VK_NUMBER_8:
-        case VK_NUMPAD_8: inputNum('8', $(this)); break;
-        case VK_NUMBER_9:
-        case VK_NUMPAD_9: inputNum('9', $(this)); break;
-        default: break;
-      }
-      if (currentPuzzle.isSolved()) {
-        self.pauseTimer();
-        self.showDialog("Congratulations! You have finished this puzzle in " + durationStr(previousDuration) + "!", { text: "Awww yeah!" });
-      }
-      e.preventDefault();
-    });
-    return $puzzle;
-  }
+
+  // The only public method. It starts a new game.
+  // Defaults to easiest and 9x9 Sudoku.
+  self.newGame = function (difficulty, n) {
+    difficulty = difficulty || 0;
+    n = n || 3;
+
+    timer.start();
+    puzzle = Sudoku.Maker.random(difficulty, n);
+    board.puzzle(puzzle);
+    board.clear();
+    board.draw();
+  };
 
   return self;
 };

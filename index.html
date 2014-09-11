@@ -14,7 +14,11 @@
     <!--[if lt IE 9]><script src="/html5shiv.js"></script><![endif]-->
   </head>
   <body>
+
+    <!-- App HTML -->
     <div id="app">
+
+      <!-- Dialog HTML -->
       <div class="dialog">
         <div class="message">Are you sure?</div>
         <div class="options">
@@ -23,6 +27,8 @@
         </div>
       </div>
       <div class="overlay"></div>
+
+      <!-- Header (UI) HTML -->
       <header>
         <div class="timer"><i class="icon-pause"></i> <span class="time">0:00</span></div>
         <div class="notes"><i class="icon-edit"></i></div>
@@ -34,15 +40,27 @@
           <a class="about">About</a>
         </nav>
       </header>
+
+      <!-- Board HTML -->
+      <div class="puzzle"></div>
+
     </div>
 
+
+    <!-- JS Library -->
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
 
-    <script src="js/ui.js"></script>
-    <script src="js/maker.js"></script>
-    <script src="js/solver.js"></script>
-    <script src="js/puzzle.js"></script>
 
+    <!-- Core Sudoku JS Models -->
+    <script src="js/puzzle.js"></script>
+    <script src="js/solver.js"></script>
+    <script src="js/maker.js"></script>
+
+    <!-- UI/HTML JS Controllers -->
+    <script src="js/dialog.js"></script>
+    <script src="js/timer.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/ui.js"></script>
     <script src="js/main.js"></script>
 
   </body>
