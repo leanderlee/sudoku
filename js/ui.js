@@ -4,33 +4,32 @@ Sudoku.UI = function (container) {
 
   var solver = new Sudoku.Solver();
   var dialog = new Sudoku.Dialog($(".dialog", container), $(".overlay", container));
+  var timer = new Sudoku.Timer($(".timer", container), pauseHandler, resumeHandler);
   var board = new Sudoku.Board($(".puzzle", container), $(".notes", container), finishHandler);
 
   var $header = $("header", container);
 
-  var pauseHandler = function () {
+  function pauseHandler() {
     $("body").trigger("click");
     $header.addClass("paused");
     board.hide();
   };
-  var resumeHandler = function () {
+  function resumeHandler() {
     $header.removeClass("paused");
     board.show();
   };
 
-  var timer = new Sudoku.Timer($(".timer", container), pauseHandler, resumeHandler);
-
-  var finishHandler = function () {
+  function finishHandler() {
     timer.pause();
     dialog.show("Congratulations! You have finished this puzzle in " + timer.duration() + "!", { text: "Awww yeah!" });
   };
-  var newHandler = function () {
+  function newHandler() {
     var newPuzzle = function () {
       self.newGame();
     }
     dialog.show("Start a new game?<br />This will clear your progress!", { action: newPuzzle }, {});
   };
-  var solveHandler = function () {
+  function solveHandler() {
     var solvePuzzle = function () {
       var markedPuzzle = board.puzzle();
       solved = solver.solve(markedPuzzle);
@@ -42,14 +41,14 @@ Sudoku.UI = function (container) {
     };
     dialog.show("Solve this puzzle for you?<br />(Complex puzzles may take a while!)", { action: solvePuzzle }, {});
   };
-  var checkHandler = function () {
+  function checkHandler() {
     if (solver.isConsistent(board.puzzle())) {
       dialog.show("Yay, everything looks good!", { text: "Okay!" });
     } else {
       dialog.show("Uh oh, something doesn't look right!", { text: "Okay..." });
     }
   };
-  var aboutHandler = function () {
+  function aboutHandler() {
     dialog.show([
       "This Sudoku game was crafted with love.", "",
       "Made in Toronto, Canada.",
